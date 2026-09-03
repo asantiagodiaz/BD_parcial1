@@ -1,0 +1,12 @@
+# Prueba de concurrencia contra la API desplegada en AWS (Learner Lab)
+# EC2 t3.small -> RDS PostgreSQL aerolinea-oltp. 2026-09-03T02:55:28Z
+# 20 POST /reservations simultaneos por el ultimo asiento; se espera 1x201 + 19x409.
+
+instancia=1  tarifa=1  ECONOMICA disponibles=1
+============================================================
+POST /reservations x20 simultaneos por 1 asiento
+  201 Created : 1   ['201 JZA83C']
+  409 Conflict: 19
+  otros       : 0   []
+============================================================
+OK: exactamente 1 reserva, sin sobreventa

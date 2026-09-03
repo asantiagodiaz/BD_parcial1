@@ -1,0 +1,58 @@
+==========================================================
+ EVIDENCIA ETL  OLTP -> OLAP  +  vistas de negocio (5.7)
+ (ejecutado localmente; mismo codigo que en AWS)
+==========================================================
+
+--- ejecucion del ETL ---
+ETL OK:
+  segmentos_procesados  : 14
+  confirmados           : 9
+  cancelados            : 3
+  modo                  : full
+  ejecutado             : 2026-09-02T23:06:45+00:00
+
+--- tablas en el OLAP ---
+                 List of relations
+ Schema |         Name          | Type  |   Owner   
+--------+-----------------------+-------+-----------
+ public | dim_canal             | table | aerolinea
+ public | dim_ruta              | table | aerolinea
+ public | dim_tarifa            | table | aerolinea
+ public | dim_tiempo            | table | aerolinea
+ public | dim_vuelo             | table | aerolinea
+ public | fact_reserva_segmento | table | aerolinea
+(6 rows)
+
+
+=== PREGUNTA 1: OCUPACION POR RUTA ===
+ par_ruta | mes | temporada | vuelos | pasajeros_confirmados | asientos_ofertados | pct_ocupacion 
+----------+-----+-----------+--------+-----------------------+--------------------+---------------
+ BOG-CLO  |   9 | BAJA      |      3 |                     0 |                318 |           0.0
+ BOG-CTG  |   9 | BAJA      |      3 |                     2 |                486 |           0.4
+ BOG-MDE  |   9 | BAJA      |      6 |                     6 |                408 |           1.5
+ MDE-CTG  |   9 | BAJA      |      2 |                     1 |                136 |           0.7
+(4 rows)
+
+=== PREGUNTA 2: INGRESOS POR TARIFA ===
+ clase_tarifa |  cabina   | ventana_compra | mes | ingreso_confirmado | comision_pagada | pasajeros | ingreso_promedio_pax 
+--------------+-----------+----------------+-----+--------------------+-----------------+-----------+----------------------
+ PROMO        | ECONOMICA | anticipada     |   9 |         1940000.00 |        32760.00 |         9 |            215555.56
+(1 row)
+
+=== PREGUNTA 3: PATRONES DE CANCELACION ===
+ par_ruta | clase_tarifa |  canal  | temporada | segmentos_totales | segmentos_cancelados | pct_cancelacion | ingreso_perdido_cancelaciones 
+----------+--------------+---------+-----------+-------------------+----------------------+-----------------+-------------------------------
+ BOG-CLO  | PROMO        | AGENCIA | BAJA      |                 2 |                    1 |            50.0 |                     204000.00
+ BOG-CLO  | PROMO        | DIRECTO | BAJA      |                 1 |                    1 |           100.0 |                     204000.00
+ BOG-CTG  | PROMO        | AGENCIA | BAJA      |                 1 |                    0 |             0.0 |                              
+ BOG-CTG  | PROMO        | DIRECTO | BAJA      |                 2 |                    0 |             0.0 |                              
+ BOG-MDE  | PROMO        | AGENCIA | BAJA      |                 1 |                    0 |             0.0 |                              
+ BOG-MDE  | PROMO        | DIRECTO | BAJA      |                 5 |                    0 |             0.0 |                              
+ MDE-CTG  | PROMO        | DIRECTO | BAJA      |                 2 |                    1 |            50.0 |                     236000.00
+(7 rows)
+
+
+--- idempotencia: 2a ejecucion (upsert) no duplica ---
+  segmentos_procesados  : 14
+ filas en fact_reserva_segmento: 14
+

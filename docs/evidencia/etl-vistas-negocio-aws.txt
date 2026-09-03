@@ -1,0 +1,24 @@
+# 3 vistas de negocio ejecutadas contra la RDS OLAP en AWS (Learner Lab)
+# aerolinea-olap.rds  2026-09-03T02:55:51Z
+
+=== v_ocupacion_por_ruta ===
+par_ruta | ciudad_origen | ciudad_destino | anio | mes | temporada | pasajeros_confirmados | vuelos | asientos_ofertados | pct_ocupacion
+BOG-CLO | Bogota | Cali | 2026 | 9 | BAJA | 0 | 3 | 318 | 0.0
+BOG-CTG | Bogota | Cartagena | 2026 | 9 | BAJA | 2 | 3 | 486 | 0.4
+BOG-MDE | Bogota | Rionegro | 2026 | 9 | BAJA | 6 | 6 | 408 | 1.5
+MDE-CTG | Rionegro | Cartagena | 2026 | 9 | BAJA | 1 | 2 | 136 | 0.7
+
+=== v_ingresos_por_tarifa ===
+clase_tarifa | cabina | ventana_compra | anio | mes | ingreso_confirmado | comision_pagada | pasajeros | ingreso_promedio_pax
+PROMO | ECONOMICA | anticipada | 2026 | 9 | 1940000.00 | 32760.00 | 9 | 215555.56
+
+=== v_patrones_cancelacion ===
+par_ruta | clase_tarifa | canal | anio | mes | temporada | segmentos_totales | segmentos_cancelados | segmentos_expirados | pct_cancelacion | ingreso_perdido_cancelaciones
+BOG-MDE | PROMO | DIRECTO | 2026 | 9 | BAJA | 5 | 0 | 0 | 0.0 | None
+MDE-CTG | PROMO | DIRECTO | 2026 | 9 | BAJA | 2 | 1 | 0 | 50.0 | 236000.00
+BOG-MDE | PROMO | AGENCIA | 2026 | 9 | BAJA | 1 | 0 | 0 | 0.0 | None
+BOG-CLO | PROMO | AGENCIA | 2026 | 9 | BAJA | 2 | 1 | 0 | 50.0 | 204000.00
+BOG-CTG | PROMO | DIRECTO | 2026 | 9 | BAJA | 2 | 0 | 0 | 0.0 | None
+BOG-CTG | PROMO | AGENCIA | 2026 | 9 | BAJA | 1 | 0 | 0 | 0.0 | None
+BOG-CLO | PROMO | DIRECTO | 2026 | 9 | BAJA | 1 | 1 | 0 | 100.0 | 204000.00
+

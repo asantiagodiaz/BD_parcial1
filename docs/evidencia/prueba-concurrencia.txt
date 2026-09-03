@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.7, pytest-9.1.1, pluggy-1.6.0 -- /home/santiago_diaz/Universidad/Noveno/Big_data/Parcial1/backend/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/santiago_diaz/Universidad/Noveno/Big_data/Parcial1/backend
+configfile: pyproject.toml
+plugins: anyio-4.15.0
+collecting ... collected 2 items
+
+tests/test_concurrencia.py::test_no_sobreventa_con_N_clientes_simultaneos 
+================================================================
+PRUEBA DE CONCURRENCIA  -  20 clientes por 1 asiento
+================================================================
+  reservas OK (hold)     : 1   ['OK:MXMVZ3']
+  rechazos HTTP 409      : 19
+  otros errores          : 0   []
+  inventario final       : vendidos=59 retenidos=1 totales=60
+  invariante (v+r <= t)  : 60 <= 60  -> OK
+================================================================
+PASSED
+tests/test_concurrencia.py::test_segunda_tanda_ya_no_hay_cupo PASSED
+
+============================== 2 passed in 0.74s ===============================

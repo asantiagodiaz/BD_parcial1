@@ -1,0 +1,265 @@
+<mxfile host="65bd71144e">
+    <diagram id="be-componentes" name="Backend - Componentes">
+        <mxGraphModel dx="863" dy="795" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1150" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="t" value="5.4 Arquitectura backend - monolito modular FastAPI  (conectores ortogonales)" style="text;html=1;fontSize=15;fontStyle=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="20" width="1200" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="spa_pax" value="SPA Pasajero&#xa;(React + Vite)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="120" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="spa_ag" value="SPA Agente&#xa;(vista por rol)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="210" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ui_apto" value="UI Aeropuerto&#xa;(check-in)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="300" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ui_adm" value="UI Admin&#xa;(catalogo / reportes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="390" width="150" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="api" value="API FastAPI  (un despliegue - EC2 t3.micro)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;verticalAlign=top;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="100" width="620" height="470" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_cat" value="catalog&#xa;rutas / vuelos programados /&#xa;generar instancias / tarifas&#xa;FR-15..17" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="150" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_search" value="search&#xa;vuelos directos + 1 escala&#xa;precio por tarifa&#xa;FR-01, FR-02, FR-03" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="150" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_book" value="booking   *DUENO DE LA CONCURRENCIA*&#xa;crear reserva (hold) / confirmar / consultar /&#xa;cancelar / cambio de fecha / comision agencia&#xa;SELECT ... FOR UPDATE sobre INVENTARIO_ASIENTOS&#xa;FR-04..12, NFR-03, NFR-04" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="260" width="560" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_pay" value="payments&#xa;orquesta pago con pasarela externa&#xa;(stub en el MVP) - FR-08, NFR-06" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="690" y="380" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_checkin" value="checkin&#xa;asignacion de asiento nominal&#xa;FR-14" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="380" width="260" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_audit" value="audit  -  escribe EVENTO_RESERVA (append-only) - FR-13, NFR-09" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="490" width="400" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="m_jobs" value="jobs&#xa;expiracion de holds&#xa;(cada 1 min) FR-07" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="810" y="490" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="oltp" value="RDS PostgreSQL - OLTP&#xa;modelo 5.3 (3FN)&#xa;StorageEncrypted, single-AZ&#xa;NFR-03/04/07" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="150" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="pasarela" value="Pasarela de pago&#xa;EXTERNA&#xa;(no guardamos datos de tarjeta)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="1000" y="380" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="glue" value="AWS Glue Job (ETL)&#xa;OLTP -&gt; OLAP  (doc 5.7)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="620" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="olap" value="RDS PostgreSQL - OLAP&#xa;esquema estrella (doc 5.7)&#xa;sirve reportes FR-18" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;boundedLbl=1;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="730" width="200" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="catalog_aws" value="AWS Glue Data Catalog&#xa;metadatos de ambas BD&#xa;(doc 5.7)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="1400" y="620" width="180" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="rep" value="endpoints de reportes (solo lectura)&#xa;consultan el OLAP, NO el OLTP&#xa;-&gt; no compiten por locks (NFR-08)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="640" width="360" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.12;endArrow=block;" parent="1" source="spa_pax" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.28;endArrow=block;" parent="1" source="spa_ag" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;" parent="1" source="ui_apto" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.75;endArrow=block;" parent="1" source="ui_adm" target="api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.3;endArrow=block;" parent="1" source="m_search" target="oltp" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="d2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.4;entryX=0;entryY=0.7;endArrow=block;startArrow=none;" parent="1" source="m_book" target="oltp" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1080" y="290"/>
+                            <mxPoint x="1080" y="234"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="d2l" value="TX + FOR UPDATE" style="edgeLabel;html=1;fontSize=10;" parent="d2" connectable="0" vertex="1">
+                    <mxGeometry x="-0.2" relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="p1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;dashed=1;" parent="1" source="m_pay" target="pasarela" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="970" y="420"/>
+                            <mxPoint x="970" y="420"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="g1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" parent="1" source="oltp" target="glue" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;" parent="1" source="glue" target="olap" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;endArrow=block;" parent="1" source="olap" target="rep" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="760" y="785"/>
+                            <mxPoint x="760" y="675"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="g4" value="crawler JDBC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.75;endArrow=none;dashed=1;fontSize=10;" parent="1" source="olap" target="catalog_aws" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="g5" value="crawler JDBC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.25;endArrow=none;dashed=1;fontSize=10;" parent="1" source="oltp" target="catalog_aws" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1360" y="210"/>
+                            <mxPoint x="1360" y="675"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="be-flujo-reserva" name="Backend - Flujo de reserva (bloqueo)">
+        <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="tt" value="5.4.2  Flujo de POST /reservations  -  bloqueo pesimista contra la sobreventa (NFR-03, NFR-04)" style="text;html=1;fontSize=14;fontStyle=1;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="15" width="1200" height="24" as="geometry"/>
+                </mxCell>
+                <!-- lifelines -->
+                <mxCell id="ll_c" value="Cliente (SPA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="40" y="60" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ll_b" value="booking (API)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="60" width="150" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ll_db" value="PostgreSQL OLTP" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="720" y="60" width="170" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ll_a" value="audit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="1080" y="60" width="120" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="lc" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="115" y="100" as="sourcePoint"/>
+                        <mxPoint x="115" y="1120" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lb" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="100" as="sourcePoint"/>
+                        <mxPoint x="435" y="1120" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ldb" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="805" y="100" as="sourcePoint"/>
+                        <mxPoint x="805" y="1120" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="la" style="endArrow=none;dashed=1;html=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1140" y="100" as="sourcePoint"/>
+                        <mxPoint x="1140" y="1120" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <!-- mensajes -->
+                <mxCell id="s1" value="POST /reservations { itinerario[segmentos], pasajeros, cabina }" style="html=1;endArrow=block;rounded=0;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="115" y="140" as="sourcePoint"/>
+                        <mxPoint x="435" y="140" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s2" value="BEGIN" style="html=1;endArrow=block;rounded=0;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="185" as="sourcePoint"/>
+                        <mxPoint x="805" y="185" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s3" value="SELECT ... FROM inventario_asientos WHERE id_instancia_vuelo = ANY(:ids) AND cabina=:c ORDER BY id_instancia_vuelo FOR UPDATE" style="html=1;endArrow=block;rounded=0;fontSize=10;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="235" as="sourcePoint"/>
+                        <mxPoint x="805" y="235" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="n3" value="Bloquea las filas de inventario de cada segmento.&#xa;Cualquier otra reserva por esas mismas filas ESPERA aqui." style="text;html=1;fontSize=10;fontStyle=2;align=left;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="255" width="470" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="s4" value="filas bloqueadas (totales, vendidos, retenidos)" style="html=1;endArrow=block;rounded=0;dashed=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="805" y="320" as="sourcePoint"/>
+                        <mxPoint x="435" y="320" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <!-- decision -->
+                <mxCell id="dec" value="para cada segmento:&#xa;totales - vendidos - retenidos  &gt;=  num_pasajeros ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="360" width="270" height="90" as="geometry"/>
+                </mxCell>
+                <!-- rama NO -->
+                <mxCell id="sNo" value="ROLLBACK" style="html=1;endArrow=block;rounded=0;strokeColor=#b85450;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="475" as="sourcePoint"/>
+                        <mxPoint x="805" y="475" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="sNo2" value="HTTP 409 Conflict  -  &#39;vuelo agotado en esa cabina&#39;  (NFR-03)" style="html=1;endArrow=block;rounded=0;strokeColor=#b85450;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="510" as="sourcePoint"/>
+                        <mxPoint x="115" y="510" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="lblNo" value="NO (algun segmento sin cupo)" style="text;html=1;fontSize=10;fontStyle=1;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="580" y="455" width="230" height="20" as="geometry"/>
+                </mxCell>
+                <!-- rama SI -->
+                <mxCell id="lblSi" value="SI (todos los segmentos tienen cupo)" style="text;html=1;fontSize=10;fontStyle=1;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="150" y="560" width="260" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="s5" value="UPDATE inventario_asientos SET asientos_retenidos = asientos_retenidos + :n  (cada fila)" style="html=1;endArrow=block;rounded=0;fontSize=10;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="595" as="sourcePoint"/>
+                        <mxPoint x="805" y="595" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="n5" value="CHECK (vendidos + retenidos &lt;= totales) = ultima barrera del motor" style="text;html=1;fontSize=10;fontStyle=2;align=left;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="612" width="420" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="s6" value="INSERT reserva (RETENIDA, retenida_hasta = now()+15min), itinerario, segmentos, reserva_pasajero" style="html=1;endArrow=block;rounded=0;fontSize=10;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="665" as="sourcePoint"/>
+                        <mxPoint x="805" y="665" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s7" value="registrar EVENTO_RESERVA (&#39;CREADA&#39; / &#39;RETENIDA&#39;)  (NFR-09)" style="html=1;endArrow=block;rounded=0;fontSize=10;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="710" as="sourcePoint"/>
+                        <mxPoint x="1140" y="710" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s8" value="COMMIT   (libera los locks)" style="html=1;endArrow=block;rounded=0;fontStyle=1;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="755" as="sourcePoint"/>
+                        <mxPoint x="805" y="755" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="s9" value="201 Created  { codigo_reserva, estado: RETENIDA, retenida_hasta }" style="html=1;endArrow=block;rounded=0;" edge="1" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="435" y="800" as="sourcePoint"/>
+                        <mxPoint x="115" y="800" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="box_after" value="Despues:  POST /reservations/{code}/pay  -&gt;  nueva TX con FOR UPDATE de las mismas filas:&#xa;asientos_retenidos -= n ;  asientos_vendidos += n ;  reserva.estado = CONFIRMADA ;  emitir BILLETE por pasajero-segmento ;  EVENTO_RESERVA(&#39;PAGADA&#39;,&#39;CONFIRMADA&#39;).&#xa;&#xa;jobs (cada 1 min):  por cada reserva RETENIDA con retenida_hasta &lt; now()  -&gt;  TX FOR UPDATE:  asientos_retenidos -= n ;  estado = EXPIRADA ;  EVENTO_RESERVA(&#39;EXPIRADA&#39;).  (FR-07)" style="rounded=1;whiteSpace=wrap;html=1;align=left;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;spacingLeft=8;spacingTop=6;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="850" width="1080" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="box_dead" value="Prevencion de deadlock:  el ORDER BY id_instancia_vuelo hace que dos reservas multi-tramo que comparten vuelos&#xa;los bloqueen siempre en el mismo orden.   Transaccion corta:  sin llamadas externas entre BEGIN y COMMIT (el pago va aparte)." style="rounded=1;whiteSpace=wrap;html=1;align=left;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;spacingLeft=8;spacingTop=6;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="1020" width="1080" height="70" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

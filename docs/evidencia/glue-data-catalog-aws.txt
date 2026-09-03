@@ -1,0 +1,54 @@
+# Glue Data Catalog - tablas catalogadas por los crawlers (Learner Lab)
+# database: aerolinea_catalog   2026-09-03T02:55:39Z
+# crawler-oltp (prefijo oltp_) sobre RDS aerolinea-oltp ; crawler-olap (prefijo olap_) sobre RDS aerolinea-olap
+
+## Estado de los crawlers
+-------------------------------------------
+|               GetCrawler                |
++--------+----------------+---------------+
+| Estado |    Nombre      |  UltimoCrawl  |
++--------+----------------+---------------+
+|  READY |  crawler-oltp  |  SUCCEEDED    |
++--------+----------------+---------------+
+-------------------------------------------
+|               GetCrawler                |
++--------+----------------+---------------+
+| Estado |    Nombre      |  UltimoCrawl  |
++--------+----------------+---------------+
+|  READY |  crawler-olap  |  SUCCEEDED    |
++--------+----------------+---------------+
+
+## Tablas en el Data Catalog
+--------------------------------------------------
+|                    GetTables                   |
++------------------------------------------------+
+|  olap_aerolinea_public_dim_canal               |
+|  olap_aerolinea_public_dim_ruta                |
+|  olap_aerolinea_public_dim_tarifa              |
+|  olap_aerolinea_public_dim_tiempo              |
+|  olap_aerolinea_public_dim_vuelo               |
+|  olap_aerolinea_public_fact_reserva_segmento   |
+|  olap_aerolinea_public_v_ingresos_por_tarifa   |
+|  olap_aerolinea_public_v_ocupacion_por_ruta    |
+|  olap_aerolinea_public_v_patrones_cancelacion  |
+|  oltp_aerolinea_public_aeronave                |
+|  oltp_aerolinea_public_aeropuerto              |
+|  oltp_aerolinea_public_agencia                 |
+|  oltp_aerolinea_public_alembic_version         |
+|  oltp_aerolinea_public_asignacion_asiento      |
+|  oltp_aerolinea_public_billete                 |
+|  oltp_aerolinea_public_config_cabina           |
+|  oltp_aerolinea_public_cuenta_usuario          |
+|  oltp_aerolinea_public_evento_reserva          |
+|  oltp_aerolinea_public_instancia_vuelo         |
+|  oltp_aerolinea_public_inventario_asientos     |
+|  oltp_aerolinea_public_itinerario              |
+|  oltp_aerolinea_public_pago                    |
+|  oltp_aerolinea_public_pasajero                |
+|  oltp_aerolinea_public_reserva                 |
+|  oltp_aerolinea_public_reserva_pasajero        |
+|  oltp_aerolinea_public_ruta                    |
+|  oltp_aerolinea_public_segmento_itinerario     |
+|  oltp_aerolinea_public_tarifa                  |
+|  oltp_aerolinea_public_vuelo_programado        |
++------------------------------------------------+

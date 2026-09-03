@@ -1,0 +1,24 @@
+{
+  "name": "aerolinea-cdk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infra CDK del Parcial 1 - sistema de reservas aereas (AWS Academy Learner Lab)",
+  "bin": { "aerolinea-cdk": "bin/app.js" },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy --require-approval never",
+    "destroy": "cdk destroy --force",
+    "diff": "cdk diff"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.0",
+    "typescript": "5.5.4",
+    "aws-cdk": "2.1139.0"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.268.0",
+    "constructs": "^10.3.0"
+  }
+}

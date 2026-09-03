@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+aws-credentials*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Datos y evidencia pesada
+*.sqlite
+*.db
+*.log
+!docs/**/*.log
+!docs/evidencia/*.txt
+backend/.env
+
+# Word temporales (los .docx de docs/ SÍ se versionan: son entregables)
+~$*.docx
+/tmp_docx/
+
+# LibreOffice lock files
+.~lock.*#

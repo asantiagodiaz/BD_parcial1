@@ -1,0 +1,21 @@
+{
+  "name": "aerolinea-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SPA de reservas aereas (5.5) - React + Vite, consume la API REST del backend (5.4)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.8"
+  }
+}

@@ -1,0 +1,91 @@
+<mxfile host="65bd71144e">
+    <diagram id="aws-arq" name="Arquitectura AWS - 5.7">
+        <mxGraphModel dx="863" dy="795" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="titulo" value="5.7  Arquitectura AWS  -  transaccional (OLTP) + analitico (OLAP) + Glue Data Catalog" style="text;html=1;fontSize=15;fontStyle=1;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="20" width="1300" height="26" as="geometry"/>
+                </mxCell>
+                <mxCell id="subt" value="Conectores ortogonales.  Iconos AWS.  Cada servicio -&gt; FR/NFR + pilar Well-Architected en docs/07 tabla 5.7.6." style="text;html=1;fontSize=11;fontStyle=2;align=left;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="46" width="1300" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="user" value="Usuario&#xa;(pasajero / agente / admin)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#232F3E;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.user;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="230" width="60" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="cloud" value="AWS Cloud  -  cuenta AWS Academy Learner Lab" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=none;verticalAlign=top;spacingTop=6;fontColor=#232F3E;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="90" width="1540" height="780" as="geometry"/>
+                </mxCell>
+                <mxCell id="oFF90qAPGsmmB-U24n0S-1" value="&lt;span style=&quot;color: rgb(35, 47, 62); font-size: 10px;&quot;&gt;IAM - LabRole&lt;/span&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(35, 47, 62); font-size: 10px;&quot;&gt;(credenciales temporales, NFR-07)&lt;/span&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#DD344C;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.identity_access_management_iam_roles_anywhere;" vertex="1" parent="cloud">
+                    <mxGeometry x="1390" y="30" width="58" height="58" as="geometry"/>
+                </mxCell>
+                <mxCell id="oFF90qAPGsmmB-U24n0S-2" value="&lt;span style=&quot;color: rgb(35, 47, 62); font-size: 10px;&quot;&gt;Amazon S3&lt;/span&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(35, 47, 62); font-size: 10px;&quot;&gt;schema_olap.sql (respaldo)&lt;/span&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(35, 47, 62); font-size: 10px;&quot;&gt;exports de reportes&lt;/span&gt;" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#7AA116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;" vertex="1" parent="cloud">
+                    <mxGeometry x="1380" y="186" width="78" height="78" as="geometry"/>
+                </mxCell>
+                <mxCell id="vpc" value="VPC por defecto" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=1;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;spacingTop=6;fontColor=#8C4FFF;" vertex="1" parent="1">
+                    <mxGeometry x="260" y="150" width="1120" height="640" as="geometry"/>
+                </mxCell>
+                <mxCell id="sg" value="Security Group  -  entrada 5432 solo desde este SG (Glue) y desde la EC2" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;dashed=1;html=1;whiteSpace=wrap;fontSize=10;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;strokeColor=#DD344C;fillColor=none;verticalAlign=top;spacingTop=4;fontColor=#DD344C;" vertex="1" parent="1">
+                    <mxGeometry x="300" y="200" width="1040" height="550" as="geometry"/>
+                </mxCell>
+                <mxCell id="olap" value="RDS PostgreSQL&#xa;aerolinea-olap  (db.t3.micro)&#xa;esquema ESTRELLA (analytics/schema_olap.sql) - sirve reportes FR-18" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#2E27AD;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.rds;" vertex="1" parent="sg">
+                    <mxGeometry x="400" y="368" width="64" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="ec2" value="EC2  t3.micro&#xa;- API FastAPI (monolito, doc 5.4)&#xa;- cron: python etl/etl.py (diario)" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.ec2;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="290" width="64" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="oltp" value="RDS PostgreSQL&#xa;aerolinea-oltp  (db.t3.micro, single-AZ, cifrada)&#xa;modelo 5.3 (3FN) - SELECT ... FOR UPDATE - NFR-03/04/07" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#2E27AD;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.rds;" vertex="1" parent="1">
+                    <mxGeometry x="700" y="280" width="64" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="glue" value="AWS Glue Data Catalog&#xa;database: aerolinea_catalog&#xa;2 conexiones JDBC + 2 crawlers&#xa;-&gt; 19 tablas oltp_* + 6 tablas / 3 vistas olap_*&#xa;(requisito explicito 5.7)" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#8C4FFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=10;aspect=fixed;shape=mxgraph.aws4.glue_data_catalog;" vertex="1" parent="1">
+                    <mxGeometry x="360" y="560" width="64" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="etlnote" value="ETL  (script Python, doc 5.7.4)&#xa;EXTRACT: 1 consulta a nivel de segmento&#xa;TRANSFORM: desnormaliza + deriva (par_ruta, temporada,&#xa;                     ventana_compra, banderas de estado)&#xa;LOAD: upsert idempotente por id_segmento_itinerario&#xa;frecuencia: diaria / on-demand (5.7.3)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF7E6;strokeColor=#ED7100;align=left;spacingLeft=8;fontSize=10;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+                    <mxGeometry x="990" y="410" width="360" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="repnote" value="Reportes de negocio  (FR-18) sobre el OLAP&#xa;v_ocupacion_por_ruta&#xa;v_ingresos_por_tarifa&#xa;v_patrones_cancelacion" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EEF3FB;strokeColor=#2E27AD;align=left;spacingLeft=8;fontSize=10;verticalAlign=top;spacingTop=6;" vertex="1" parent="1">
+                    <mxGeometry x="1000" y="560" width="350" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_user" value="HTTPS / JSON (TLS, NFR-07)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;fontSize=10;" edge="1" parent="1" source="user" target="ec2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_api" value="API: TX + SELECT FOR UPDATE   |   cron ETL: lee (EXTRACT)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;fontSize=10;" edge="1" parent="1" source="ec2" target="oltp">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_etl_write" value="ETL: upsert (LOAD)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=block;fontSize=10;" edge="1" parent="1" source="oltp" target="olap">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_cr_oltp" value="crawler JDBC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.85;entryX=1;entryY=0.15;endArrow=none;dashed=1;fontSize=10;" edge="1" parent="1" source="oltp" target="glue">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="590" y="334"/>
+                            <mxPoint x="590" y="570"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_cr_olap" value="crawler JDBC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.6;endArrow=none;dashed=1;fontSize=10;" edge="1" parent="1" source="olap" target="glue">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_s3" value="publica esquema / exports" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=0;endArrow=block;dashed=1;fontSize=10;" edge="1" parent="1" source="ec2" target="oFF90qAPGsmmB-U24n0S-2">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="392" y="250"/>
+                            <mxPoint x="1560" y="250"/>
+                            <mxPoint x="1560" y="290"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_rep" value="consultas de reporte (solo lectura)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=block;fontSize=10;" edge="1" parent="1" source="olap" target="repnote">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_note" value="el ETL escribe aqui (LOAD)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=0;entryX=0;entryY=0.5;endArrow=none;dashed=1;fontSize=10;" edge="1" parent="1" source="olap" target="etlnote">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="900" y="500"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
