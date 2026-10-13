@@ -81,6 +81,8 @@ infra/cdk/       Infraestructura como código (AWS CDK, TypeScript)
   deploy.sh      despliegue completo   ·   validar.sh   verificación (15 chequeos)
 
 tools/           md2docx.py (Markdown → Word) · compilar_entrega.py (documento final)
+                 probar_concurrencia_aws.py · consultar_reservas.py · ver_vistas_negocio.py
+                 (pruebas contra lo desplegado en AWS; leen API_URL / OLTP_DATABASE_URL / OLAP_DATABASE_URL del entorno)
 
 SUSTENTACION.md  Cómo correr todo, todas las URLs, guion de demo y FAQ de defensa
 ```
