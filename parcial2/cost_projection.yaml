@@ -1,0 +1,16 @@
+# Proyeccion mensual de costos - Parcial 2 (us-east-1, precios on-demand, 730 h/mes)
+# No se escribe total: el harness lo calcula sumando line_items.
+assumptions: >-
+  Uso gerencial: ~50 usuarios internos, ~2.000 busquedas/dia y ~200 reservas/dia en la API;
+  panel gerencial con ~100 consultas/dia a Athena. Historial de 2 anos (2 millones de filas,
+  ~100 MB en CSV crudo, ~25 MB en Parquet). La limpieza con EMR se ejecuta 1 vez al mes
+  (0,5 h, 1 x m4.large). Todo en una sola AZ de us-east-1.
+line_items:
+  - {service: "EC2", detail: "1 x t3.small (API + frontend), 730 h", monthly_usd: 15.18}
+  - {service: "EBS", detail: "volumen gp3 de 20 GB de la EC2", monthly_usd: 1.60}
+  - {service: "RDS", detail: "db.t3.micro, 1 AZ, 730 h", monthly_usd: 12.41}
+  - {service: "RDS storage", detail: "20 GB almacenamiento (RDS PostgreSQL)", monthly_usd: 2.30}
+  - {service: "S3", detail: "~2 GB (crudo + curado + resultados de Athena)", monthly_usd: 0.10}
+  - {service: "Athena", detail: "~100 consultas/dia sobre Parquet particionado (~1 MB c/u)", monthly_usd: 0.10}
+  - {service: "EMR", detail: "1 corrida/mes, 1 x m4.large, 0,5 h (2 horas normalizadas)", monthly_usd: 0.20}
+  - {service: "Glue Data Catalog", detail: "1 base + 2 tablas (dentro de la capa gratuita)", monthly_usd: 0.0}
