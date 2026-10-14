@@ -1,0 +1,10 @@
+node_modules/
+cdk.out/
+bin/*.js
+lib/*.js
+*.d.ts
+*.pem
+.cdk.staging/
+.dbpass
+.emr-last
+cdk.context.json
