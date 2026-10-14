@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reservas aéreas</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Reservas aéreas</h1>
+    <nav><a href="/">Reservar</a> · <a href="/manager/">Panel gerencial</a></nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Buscar vuelo</h2>
+      <div class="row">
+        <label>Origen <input data-testid="search-origin" maxlength="3" placeholder="BOG"></label>
+        <label>Destino <input data-testid="search-destination" maxlength="3" placeholder="MDE"></label>
+        <label>Fecha <input data-testid="search-date" type="date"></label>
+        <button data-testid="search-submit" id="search-submit">Buscar</button>
+      </div>
+      <p id="search-msg" class="msg" role="status"></p>
+      <ul id="results" class="flights"></ul>
+    </section>
+
+    <section class="card" id="booking" hidden>
+      <h2>Reservar vuelo <span id="booking-flight"></span></h2>
+      <div class="row">
+        <label>Nombre del pasajero <input data-testid="passenger-name" id="passenger-name"></label>
+        <label>Clase
+          <select id="fare-class">
+            <option value="ECONOMY">Económica</option>
+            <option value="BUSINESS">Ejecutiva</option>
+          </select>
+        </label>
+        <button data-testid="confirm-submit" id="confirm-submit">Confirmar reserva</button>
+      </div>
+      <p id="booking-msg" class="msg" role="status"></p>
+    </section>
+
+    <section class="card" id="confirmation" hidden>
+      <h2>¡Reserva confirmada!</h2>
+      <p>Código de tu reserva:</p>
+      <p class="code" data-testid="confirmation-id" id="confirmation-id"></p>
+    </section>
+  </main>
+
+  <script src="/static/customer.js"></script>
+</body>
+</html>

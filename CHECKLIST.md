@@ -50,8 +50,8 @@ Se va marcando a medida que se avanza. `[x]` = hecho · `[ ]` = pendiente.
 Enunciado: `docs/enunciado-parcial2.docx` · Harness: `../parcial2-harness-estudiantes/parcial2-harness`
 
 ### Datos de partida
-- [ ] Pedir la **semilla** de mi equipo al profesor (hasta tenerla se usa 12345 de prueba)
-- [ ] Crear `config.yaml` a partir de `config.example.yaml`
+- [x] Semilla del equipo: **963** (últimos 3 dígitos de la cédula). Datos derivados en `parcial2/BITACORA.md`
+- [x] `config.yaml` del harness creado (local, semilla 963)
 - [ ] Generar datos: `python -m airline_data.generate --seed <SEMILLA> --rows 2000000 --out raw/`
 - [ ] Nueva cuenta/Lab de AWS lista (la anterior se quedó sin crédito)
 
@@ -62,24 +62,24 @@ Enunciado: `docs/enunciado-parcial2.docx` · Harness: `../parcial2-harness-estud
 - [ ] Primera proyección de costos (`cost_projection.yaml`)
 
 ### Requisitos del harness (70 pts)
-- [ ] **R1** (4) `GET /flights/search` con p95 ≤ 1 s bajo 20 clientes concurrentes
-- [ ] **R2** (10) Sin sobreventa: 1 asiento y K asientos con 50 peticiones simultáneas, nunca 5xx
-- [ ] **R3** (3) `GET /reservations/{id}` devuelve 200 o 404
+- [x] **R1** (4) (pasa en local) `GET /flights/search` con p95 ≤ 1 s bajo 20 clientes concurrentes
+- [x] **R2** (10) (pasa en local) Sin sobreventa: 1 asiento y K asientos con 50 peticiones simultáneas, nunca 5xx
+- [x] **R3** (3) (pasa en local) `GET /reservations/{id}` devuelve 200 o 404
 - [ ] **R4** (8) Job EMR (PySpark) aplica C1–C5 y escribe Parquet particionado por mes (24 particiones)
 - [ ] **R5** (6) Tablas `reservations_curated` y `route_month_metrics` en Glue, con particiones
 - [ ] **R6** (8) Athena: top-10 rutas correcto y consultas por mes sin escanear todo
 - [ ] **R7** (8) `GET /analytics/occupancy?route=&month=` desde Athena en ≤ 10 s
-- [ ] **R8** (6) Frontend: buscar, reservar y ver confirmación (selectores del Apéndice A.3)
+- [x] **R8** (6) (pasa en local) Frontend: buscar, reservar y ver confirmación (selectores del Apéndice A.3)
 - [ ] **R9** (4) Panel `/manager` muestra el mismo valor que el endpoint
 - [ ] **R10** (5) Sin recursos EMR vivos; ≤ 150 horas normalizadas
 - [ ] **R11** (4) Arquitectura simple: instancias pequeñas, sin Multi-AZ ni NAT, ≤ 8 servicios
 - [ ] **R12** (4) `cost_projection.yaml` ≤ 1,5× la referencia y ≤ US$ 50, coherente con lo desplegado
 
 ### Construcción
-- [ ] Backend adaptado al contrato (`POST /admin/flights`, `/flights/search`, `/reservations`, `/analytics/occupancy`, `/health`)
-- [ ] Job PySpark de limpieza C1–C5 (probado primero con una muestra pequeña)
+- [x] Backend adaptado al contrato (`POST /admin/flights`, `/flights/search`, `/reservations`, `/analytics/occupancy`, `/health`)
+- [x] Job PySpark de limpieza C1–C5 (verificado contra el oráculo en local; falta correrlo en EMR real)
 - [ ] Tablas en Glue/Athena + endpoint de analítica
-- [ ] Frontend con las páginas `/` y `/manager`
+- [x] Frontend con las páginas `/` y `/manager` (`/manager` sin probar: depende de Athena)
 - [ ] Stack CDK simplificado (sin segunda RDS ni crawlers) + script aparte para EMR (`--auto-terminate`)
 - [ ] Probar que el Lab permite EMR con los roles disponibles
 
