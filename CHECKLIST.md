@@ -53,13 +53,13 @@ Enunciado: `docs/enunciado-parcial2.docx` · Harness: `../parcial2-harness-estud
 - [x] Semilla del equipo: **963** (últimos 3 dígitos de la cédula). Datos derivados en `parcial2/BITACORA.md`
 - [x] `config.yaml` del harness creado (local, semilla 963)
 - [ ] Generar datos: `python -m airline_data.generate --seed <SEMILLA> --rows 2000000 --out raw/`
-- [ ] Nueva cuenta/Lab de AWS lista (la anterior se quedó sin crédito)
+- [x] Nueva cuenta/Lab de AWS lista (937228084004)
 
 ### Entrega parcial (antes de construir)
-- [ ] Borrador de la sección 5 (decisiones y justificación)
+- [x] Borrador de la sección 5 (`parcial2/docs/seccion5-borrador.md`)
 - [ ] Diagrama de arquitectura
-- [ ] Tabla de justificación de servicios (servicio, alternativa, requisito, pilar Well-Architected)
-- [ ] Primera proyección de costos (`cost_projection.yaml`)
+- [x] Tabla de justificación de servicios (incluida en el borrador)
+- [x] Primera proyección de costos (`parcial2/cost_projection.yaml`)
 
 ### Requisitos del harness (70 pts)
 - [x] **R1** (4) (pasa en local) `GET /flights/search` con p95 ≤ 1 s bajo 20 clientes concurrentes
@@ -80,8 +80,8 @@ Enunciado: `docs/enunciado-parcial2.docx` · Harness: `../parcial2-harness-estud
 - [x] Job PySpark de limpieza C1–C5 (verificado contra el oráculo en local; falta correrlo en EMR real)
 - [ ] Tablas en Glue/Athena + endpoint de analítica
 - [x] Frontend con las páginas `/` y `/manager` (`/manager` sin probar: depende de Athena)
-- [ ] Stack CDK simplificado (sin segunda RDS ni crawlers) + script aparte para EMR (`--auto-terminate`)
-- [ ] Probar que el Lab permite EMR con los roles disponibles
+- [x] Stack CDK simplificado + script `run_emr.sh` escritos en `parcial2/infra/` (plantilla generada; falta desplegar)
+- [x] Probar que el Lab permite EMR con los roles disponibles (OK: cluster 1 x m4.large, job verificado contra el oráculo)
 
 ### Entrega final
 - [ ] Ejecutar el harness completo y guardar `report.md`

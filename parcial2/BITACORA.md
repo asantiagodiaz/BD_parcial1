@@ -114,3 +114,15 @@ DATABASE_URL="postgresql+psycopg://postgres@localhost:5433/airline2" ../.venv/Sc
 3. Script `run_emr.sh` (cluster `m4.large`, `--auto-terminate`). Probar primero que el Lab permita EMR.
 4. Generar los 2M de filas, subir a S3, correr EMR, validar R4–R7 con credenciales.
 5. `cost_projection.yaml`, documento (sección 5), registro de prompts, `report.md` final.
+
+---
+
+## 7. Prueba real en EMR (2026-10-14, cuenta 937228084004)
+
+- Cuenta nueva del Lab: existen `EMR_DefaultRole`, `EMR_EC2_DefaultRole` y `LabInstanceProfile`; EMR con `m4.large` **sí está permitido**.
+- Bucket de datos: `s3://p2-airline-937228084004` (privado, sin acceso público).
+- **Primer intento falló por memoria**: cluster de 1 × `m4.large` con la configuración por defecto de Spark. En modo `cluster` el driver ocupa casi toda la memoria de YARN y los ejecutores nunca se asignaron (12 min con un solo contenedor). Se canceló el cluster a mano.
+- **Corrección**: `run_emr.sh` fija la memoria explícitamente (`--driver-memory 1g`, ejecutor de 3 GB y 2 núcleos, sin asignación dinámica). Con eso el job corrió en ~2 min.
+- Resultado con muestra de 200 mil filas (semilla 963): step `COMPLETED`, el cluster se apagó solo, 24 prefijos `month=` con 1 archivo Parquet cada uno (~85 KB) y 1 archivo de métricas. Comparado con el oráculo del harness: filas curadas (203.824), ingresos por mes, capacidad, vendidos, cancelaciones y ocupación coinciden exactamente.
+- Tiempos: ~4,5 min de arranque del cluster + ~2 min de job. Cada corrida de 1 nodo cuenta unas 2–3 horas normalizadas (tope R10: 150).
+- Pendiente de esta prueba: correr con los 2 M de filas y registrar tiempos reales.
