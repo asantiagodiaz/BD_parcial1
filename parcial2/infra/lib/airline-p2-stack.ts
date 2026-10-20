@@ -55,7 +55,7 @@ export class AirlineP2Stack extends cdk.Stack {
     // La API debe estar accesible para el harness del profesor -> publica en 8000.
     sg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8000), "API + frontend");
     // PostgreSQL (5432) solo entre miembros de este mismo SG (EC2 -> RDS).
-    sg.connections.allowInternally(ec2.Port.tcp(5432), "PostgreSQL EC2 -> RDS");
+    sg.connections.allowInternally(ec2.Port.tcp(5432), "PostgreSQL de la EC2 hacia la RDS");
 
     // ---- RDS PostgreSQL (R11: 1 AZ, clase pequena) ----
     const db = new rds.DatabaseInstance(this, "Db", {
