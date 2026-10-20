@@ -126,3 +126,21 @@ DATABASE_URL="postgresql+psycopg://postgres@localhost:5433/airline2" ../.venv/Sc
 - Resultado con muestra de 200 mil filas (semilla 963): step `COMPLETED`, el cluster se apagó solo, 24 prefijos `month=` con 1 archivo Parquet cada uno (~85 KB) y 1 archivo de métricas. Comparado con el oráculo del harness: filas curadas (203.824), ingresos por mes, capacidad, vendidos, cancelaciones y ocupación coinciden exactamente.
 - Tiempos: ~4,5 min de arranque del cluster + ~2 min de job. Cada corrida de 1 nodo cuenta unas 2–3 horas normalizadas (tope R10: 150).
 - Pendiente de esta prueba: correr con los 2 M de filas y registrar tiempos reales.
+
+---
+
+## 8. Despliegue completo y harness (2026-10-19, cuenta 937228084004)
+
+- Despliegue con `parcial2/infra/deploy.sh`. **Primer intento falló**: CloudFormation rechazó la descripción de una regla del security group (`"PostgreSQL EC2 -> RDS"`) porque `>` no es un carácter permitido. Se cambió el texto y el segundo intento creó el stack completo (EC2 + RDS + 2 tablas de Glue + workgroup de Athena). La API respondió a los pocos minutos.
+- Datos completos: 2.079.743 reservas crudas y 14.904 vuelos (semilla 963) generados en local, subidos a `s3://p2-airline-937228084004/raw/` y limpiados con `run_emr.sh` (1 × m4.large, ~8 min en total, el cluster se apagó solo). Resultado: 2.009.247 filas curadas, 24 particiones.
+- **Harness completo contra lo desplegado: 70 / 70 puntos** (`report.md` en esta carpeta). Evidencia destacada:
+  - R1: p95 de la búsqueda = 0,228 s con 20 clientes (límite 1 s).
+  - R2: 5 rondas con 1 asiento → 1 × 201 y 49 × 409; 5 rondas con K = 8 → exactamente 8 × 201. Nunca 5xx.
+  - R6: una consulta de un mes escaneó 295 KB (límite 1,6 MB): la partición por mes y Parquet funcionan.
+  - R7: el endpoint respondió en 1,5–2,5 s (límite 10 s) con 7 consultas reales a Athena.
+  - R10: 12 horas normalizadas de EMR usadas (tope 150), sin clusters vivos.
+  - R11: servicios facturables detectados: Athena, EC2, EMR, Glue, RDS, S3 y **Lambda** (7 de 8 permitidos).
+  - R12: proyección declarada US$ 31,89 vs. US$ 27,95 estimados de lo desplegado.
+- Nota sobre Lambda: no la creamos nosotros. Son funciones que el propio Learner Lab mantiene en la cuenta (`RoleCreationFunction`, `MainMonitoringFunction`...). El harness las cuenta; sigue habiendo margen (7 de 8). Mencionarlo en el documento.
+- El harness avisó que no pudo inspeccionar CloudFront (el Lab no lo permite); no se cuenta y no afecta.
+- Limitación a recordar: en nuestra copia `probe_salt = 0`; el profesor usa otros pares (ruta, mes) en R7 y R9. Probamos ya 5 pares + el de R9, todos correctos, y el endpoint es genérico, así que no se espera diferencia.
