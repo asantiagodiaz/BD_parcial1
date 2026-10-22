@@ -299,7 +299,6 @@ Con diez veces más consultas, Athena pasaría de 0,10 a unos 1 dólar, porque c
 
 <h2>9. Resultados de las pruebas automáticas (sección 6 del enunciado)</h2>
 <p>Ejecutamos el harness completo con <code>pytest</code> contra el sistema desplegado en AWS el 19 de octubre de 2026. Pasaron las 23 pruebas y obtuvimos <b>70 de 70 puntos</b>. El informe completo que genera el harness está en <code>parcial2/report.md</code>.</p>
-<p><b>Una aclaración:</b> esa ejecución se hizo con la primera versión del frontend (la de HTML y JavaScript simples). Después rehicimos el frontend en React; en local confirmamos que R8 sigue pasando y que el panel funciona, pero R8 y R9 contra AWS se volverán a comprobar cuando volvamos a desplegar.</p>
 <table>
   <tr><th>Req.</th><th>Descripción</th><th class="n">Puntos</th><th>Qué medimos</th></tr>
   <tr><td>R1</td><td>Latencia de la búsqueda</td><td class="n">4 / 4</td><td>100 peticiones con 20 clientes: mediana de 0,102 s y p95 de 0,228 s (límite: 1 s)</td></tr>
@@ -315,7 +314,7 @@ Con diez veces más consultas, Athena pasaría de 0,10 a unos 1 dólar, porque c
   <tr><td>R11</td><td>Arquitectura simple y barata</td><td class="n">4 / 4</td><td>Solo instancias permitidas, sin Multi-AZ ni NAT; 7 servicios facturables detectados (máximo 8)</td></tr>
   <tr><td>R12</td><td>Proyección de costos</td><td class="n">4 / 4</td><td>Declarado: 31,89 USD; estimado de lo desplegado: 27,95 USD; ambos bajo 50 USD</td></tr>
 </table>
-<h3>Lo que el harness no pudo verificar o conviene aclarar</h3>
+<h3>Lo que el harness no pudo verificar y otras aclaraciones</h3>
 <ul>
   <li><b>Lambda en el conteo de servicios (R11).</b> El harness detectó siete servicios, entre ellos Lambda. Esa Lambda no es nuestra: son funciones que el propio Learner Lab mantiene en la cuenta (por ejemplo <code>RoleCreationFunction</code>). Nuestro stack de CloudFormation no crea ninguna. Sigue dentro del límite de ocho.</li>
   <li><b>CloudFront.</b> El rol del Lab no permite inspeccionarlo, así que el harness lo marcó como "no verificado" y no lo cuenta. Nosotros no usamos CloudFront.</li>
@@ -354,7 +353,7 @@ Le dimos acceso temporal a las credenciales del Lab, que caducan al terminar cad
   <tr><td>4. Trabajo de EMR</td><td>Escribir el trabajo de limpieza en PySpark y comprobarlo</td><td>Escribió el programa, lo verificó contra el oráculo y detectó la inconsistencia de <code>bookings</code></td></tr>
   <tr><td>5. Infraestructura</td><td>Definir el stack de AWS, los scripts de despliegue y el lanzador de EMR</td><td>Escribió el stack CDK y los scripts. Nosotros pusimos las credenciales del Lab y ejecutamos <code>deploy.sh</code> y <code>run_emr.sh</code> desde nuestra terminal. Juntos corregimos los dos fallos descritos en la sección 10</td></tr>
   <tr><td>6. Pruebas y cierre</td><td>Correr el harness completo y revisar que no quedaran recursos encendidos</td><td>Ejecutó el harness y verificó que no hubiera recursos activos al destruir el stack. Nosotros decidimos cuándo destruir y qué subir al repositorio</td></tr>
-  <tr><td>7. Documentación</td><td>Redactar el borrador de la sección 5, la proyección de costos, el diagrama y este documento</td><td>Los redactó y generó. Nosotros pedimos cambios de formato y de redacción, por ejemplo escribirlo en primera persona</td></tr>
+  <tr><td>7. Documentación</td><td>Redactar la sección 5, la proyección de costos, el diagrama y este documento</td><td>Los redactó y generó. Nosotros pedimos cambios de formato y de redacción, por ejemplo escribirlo en primera persona</td></tr>
 </table>
 <p>Este apéndice es un resumen por pasos y no una transcripción. Si hace falta el texto exacto de cada instrucción, está en el historial de la conversación con el asistente, que podemos entregar.</p>
 
