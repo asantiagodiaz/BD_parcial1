@@ -20,6 +20,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
@@ -163,9 +164,19 @@ def ocupacion(
     return resultado
 
 
-# --- Frontend estatico (mismo proceso, mismo origen: un servicio menos que operar) ---
-# Se monta al final para que no tape las rutas de la API. "/" -> index.html y
-# "/manager" -> manager/index.html. Si el directorio no existe, solo se sirve la API.
-_FRONTEND = pathlib.Path(os.environ.get("FRONTEND_DIR", pathlib.Path(__file__).resolve().parents[2] / "frontend"))
+# --- Frontend (React compilado): mismo proceso y mismo origen, un servicio menos que operar ---
+# Se sirve la carpeta frontend/dist generada por `npm run build`. Es una SPA con dos
+# pantallas ("/" y "/manager"), asi que /manager devuelve el mismo index.html y el router de
+# React decide la vista. Va despues de las rutas de la API para no taparlas. Si dist/ no
+# existe (por ejemplo en pruebas del backend), solo se sirve la API.
+_FRONTEND = pathlib.Path(
+    os.environ.get("FRONTEND_DIR", pathlib.Path(__file__).resolve().parents[2] / "frontend" / "dist")
+)
 if _FRONTEND.is_dir():
+
+    @app.get("/manager", include_in_schema=False)
+    @app.get("/manager/", include_in_schema=False)
+    def panel_gerencial():
+        return FileResponse(_FRONTEND / "index.html")
+
     app.mount("/", StaticFiles(directory=_FRONTEND, html=True), name="frontend")

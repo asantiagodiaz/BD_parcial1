@@ -53,11 +53,16 @@ fi
 [ -f .dbpass ] || { openssl rand -hex 16 > .dbpass; chmod 600 .dbpass; }
 DB_PASS="$(cat .dbpass)"
 
+# ---------- compilar el frontend (React) ----------
+# La EC2 no necesita Node: se sube solo frontend/dist ya compilado.
+echo ">> compilando el frontend"
+( cd "$REPO_ROOT/parcial2/frontend" && { [ -d node_modules ] || npm install --silent; } && npm run build --silent )
+
 # ---------- empaquetar y subir backend + frontend ----------
 TARBALL="/tmp/airline-p2-code.tgz"
 tar czf "$TARBALL" -C "$REPO_ROOT" \
   --exclude='.venv' --exclude='node_modules' --exclude='cdk.out' --exclude='__pycache__' --exclude='*.pyc' \
-  parcial2/backend parcial2/frontend parcial2/infra/assets
+  parcial2/backend parcial2/frontend/dist parcial2/infra/assets
 CODE_KEY="code/airline-p2-$(date +%s).tgz"
 aws s3 cp "$TARBALL" "s3://$BUCKET/$CODE_KEY" --only-show-errors
 aws s3 cp "$REPO_ROOT/parcial2/emr/job.py" "s3://$BUCKET/code/job.py" --only-show-errors
