@@ -20,7 +20,7 @@ with sync_playwright() as p:
         display_header_footer=True,
         header_template="<span></span>",
         footer_template=(
-            '<div style="font-size:8px;width:100%;text-align:center;color:#5b6b7c;">'
+            '<div style="font-size:8px;width:100%;text-align:center;color:#000;">'
             'Parcial 2 · Panel gerencial de ocupación · página <span class="pageNumber"></span> de '
             '<span class="totalPages"></span></div>'
         ),
