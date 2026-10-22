@@ -105,11 +105,23 @@ se calculan, siempre igual, estos datos:</p>
 <h2>3. Vista general del sistema</h2>
 <p>La figura 1 muestra lo que realmente quedó desplegado. Lo importante es que hay dos caminos separados: el de las reservas y el del análisis.</p>
 <figure>
-  <img src="diagrams/06-arquitectura-aws-parcial2.png" alt="Diagrama de arquitectura">
-  <figcaption>Figura 1. Arquitectura desplegada en AWS. El archivo editable está en <code>docs/diagrams/06-arquitectura-aws-parcial2.drawio</code>.</figcaption>
+  <img src="diagrams/06-arquitectura-aws-parcial2-sin-leyenda.png" alt="Diagrama de arquitectura">
+  <figcaption>Figura 1. Arquitectura desplegada en AWS. Los números de cada elemento se explican en la tabla siguiente. El archivo editable, que incluye esa leyenda dentro del dibujo, está en <code>docs/diagrams/06-arquitectura-aws-parcial2.drawio</code>.</figcaption>
 </figure>
+<table>
+  <tr><th>N.º</th><th>Elemento</th><th>Qué es</th></tr>
+  <tr><td>1</td><td>Cliente</td><td>Persona que busca un vuelo y lo reserva desde el navegador, en la página principal (<code>/</code>).</td></tr>
+  <tr><td>2</td><td>Gerente</td><td>Persona de la aerolínea que consulta la ocupación por ruta y mes en el panel (<code>/manager</code>): ve el porcentaje y el ranking de las 9 rutas.</td></tr>
+  <tr><td>3</td><td>EC2 t3.small</td><td>Máquina virtual que ejecuta la API (FastAPI) y entrega el frontend React ya compilado. Es un solo proceso en el puerto 8000 y no necesita Node.</td></tr>
+  <tr><td>4</td><td>RDS PostgreSQL</td><td>Base de datos de vuelos y reservas. Es privada: solo la EC2 se conecta. Un <code>UPDATE</code> condicional impide vender un asiento de más.</td></tr>
+  <tr><td>5</td><td>Athena</td><td>Ejecuta SQL directamente sobre los archivos de S3, sin servidor propio. El panel le pregunta la ocupación; cobra solo por los datos que lee.</td></tr>
+  <tr><td>6</td><td>Glue Data Catalog</td><td>Guarda cómo son las 2 tablas (columnas y carpeta de S3) para que Athena las entienda. Con <i>partition projection</i> conoce los 24 meses sin crawlers.</td></tr>
+  <tr><td>7</td><td>S3 curated</td><td>Datos ya limpios en Parquet, una carpeta por mes (<code>month=2024-01</code>...). Una consulta de un mes solo lee su carpeta, por eso escanea tan poco.</td></tr>
+  <tr><td>8</td><td>EMR (Spark)</td><td>Cluster temporal que lee los CSV, aplica las reglas de limpieza C1–C5 y escribe el Parquet. Se apaga solo al terminar, para no seguir cobrando.</td></tr>
+  <tr><td>9</td><td>S3 raw</td><td>El historial tal como llega: 2 millones de reservas en CSV, con rutas mal escritas, estados raros, filas repetidas y precios inválidos.</td></tr>
+</table>
 <h3>El camino de las reservas</h3>
-<p>Un cliente abre la página, busca un vuelo y lo reserva. Esa petición llega a una máquina virtual EC2 que ejecuta un único proceso con la API (FastAPI) y que además entrega las páginas web.
+<p>Un cliente abre la página, busca un vuelo y lo reserva. Esa petición llega a una máquina virtual EC2 que ejecuta un único proceso con la API (FastAPI) y que además entrega las páginas web (un frontend hecho con React, ya compilado).
 La API guarda y lee los datos en una base de datos PostgreSQL administrada por AWS (RDS). La base de datos no es pública: solo la EC2 puede conectarse a ella.</p>
 <h3>El camino del análisis</h3>
 <p>El historial crudo está en S3. Una vez, o cada vez que queramos actualizar el análisis, lanzamos un cluster de EMR que lee esos archivos, los limpia con Spark y escribe el resultado, ya limpio y en Parquet,
@@ -145,14 +157,18 @@ Como segunda barrera, la tabla tiene una restricción <code>CHECK (seats_sold &l
 <p>Es el mismo bloqueo de filas que usamos en el primer parcial (<code>SELECT ... FOR UPDATE</code>), pero en un solo viaje a la base de datos en lugar de dos, lo que reduce la latencia cuando hay muchos clientes a la vez. Además dimensionamos el
 grupo de conexiones a la base de datos (20 permanentes y hasta 40 adicionales) para que 50 reservas simultáneas no se queden esperando una conexión.</p>
 <h3>4.4 El frontend</h3>
-<p>El frontend tiene dos páginas escritas en HTML y JavaScript simples, sin frameworks ni paso de compilación, y las entrega el mismo proceso de la API:</p>
+<p>El frontend es una aplicación de una sola página hecha con React y Vite, con el mismo diseño que usamos en el primer parcial (barra azul con la marca RegionalAir, tarjetas, y modo oscuro automático). La compilamos a archivos estáticos y el mismo proceso de la API los entrega, de modo que el navegador
+siempre habla con un único servidor. Tiene dos pantallas:</p>
 <ul>
-  <li><b>Página del cliente (<code>/</code>):</b> se escriben origen, destino y fecha, se pulsa Buscar, se elige un vuelo, se escribe el nombre del pasajero y se confirma. La página muestra el código de la reserva. Si el vuelo se llena mientras el cliente decide, avisa que se quedó sin asientos.</li>
-  <li><b>Panel gerencial (<code>/manager</code>):</b> se escribe una ruta (por ejemplo SMR-BAQ) y un mes (por ejemplo 2024-01) y se muestra la ocupación como porcentaje, junto con los asientos vendidos y la capacidad.</li>
+  <li><b>Reservar (<code>/</code>).</b> Se elige origen y destino (el campo sugiere los aeropuertos del historial), se escoge la fecha y se pulsa Buscar. Cada vuelo aparece con su ruta, los asientos disponibles y el precio. Al pulsar Reservar se piden el nombre del pasajero y la clase (económica o ejecutiva),
+  y al confirmar se muestra una pantalla con el código de la reserva. Si el vuelo se llena mientras la persona decide, la página lo avisa con un mensaje claro en lugar de fallar.</li>
+  <li><b>Panel gerencial (<code>/manager</code>).</b> Se escribe una ruta y un mes. Aparece una tarjeta grande con el porcentaje de ocupación, una barra de progreso, los asientos vendidos y la capacidad del mes. Debajo se muestra un <b>ranking de las 9 rutas</b> en ese mismo mes, ordenado de mayor a menor ocupación y con la ruta consultada resaltada.
+  Eso responde la pregunta original de la gerencia ("¿qué rutas llenan sus aviones?"), no solo la de una ruta. La tarjeta aparece apenas llega su valor; las otras 8 rutas se piden en paralelo a Athena y se agregan después, y las rutas que no tienen datos en ese mes simplemente no aparecen.</li>
 </ul>
-<p>Para el parcial 1 habíamos hecho una SPA en React con más pantallas. No la reutilizamos porque estaba hecha para otra API (búsqueda con pasajeros y escalas, tarifas, consulta por código de seis letras), y adaptarla significaba reescribir casi todas sus páginas,
-agregar Node y un paso de compilación en el servidor. Preferimos una versión pequeña que no necesita nada de eso y que se explica en pocos minutos. El diseño es básico a propósito: el parcial evalúa que el flujo funcione, y cada
-pantalla extra era algo más que mantener y defender.</p>
+<p>Hicimos primero una versión muy simple, con HTML y JavaScript sin frameworks, que ya cumplía el contrato del harness. Después decidimos rehacerla en React retomando el diseño del parcial 1, porque se veía demasiado básica y porque queríamos que el panel contara mejor lo que mide el sistema.
+No reutilizamos las pantallas del parcial 1 tal cual, porque estaban hechas para otra API (búsqueda con pasajeros y escalas, tarifas, consulta por código de seis letras); reutilizamos su estilo y su estructura y reescribimos las páginas para el contrato actual.
+Los identificadores que exige el harness (<code>data-testid</code>) se conservaron en cada elemento.</p>
+<p>Un detalle importante sobre la seguridad: el panel no pide usuario ni contraseña. No lo hicimos por descuido: el harness abre <code>/manager</code> y llama a <code>/analytics/occupancy</code> sin credenciales, y exigir un inicio de sesión haría fallar R7 y R9. Lo dejamos documentado como limitación (sección 11).</p>
 <h3>4.5 Cómo probamos antes de desplegar</h3>
 <p>Antes de subir nada a AWS corrimos el backend y las pruebas del harness en nuestro propio computador, con una PostgreSQL local. Ahí pasaron R1, R2, R3 y R8 (23 puntos). Eso nos permitió corregir errores sin gastar crédito del Lab.</p>
 
@@ -240,14 +256,14 @@ mira meses completos, es suficiente. <b>¿Usamos caché?</b> No lo justificamos:
 CLI, usando los roles que el Lab ya trae (<code>LabRole</code> y <code>LabInstanceProfile</code>).</p>
 <h3>7.1 Los dos scripts</h3>
 <ul>
-  <li><b><code>deploy.sh</code></b> empaqueta el backend y el frontend, los sube a S3, crea una llave SSH y una contraseña aleatoria para la base de datos (que no se guarda en el repositorio), genera la plantilla con <code>cdk synth</code> y la aplica con <code>aws cloudformation deploy</code>.
+  <li><b><code>deploy.sh</code></b> compila el frontend (React), empaqueta el backend y el frontend ya compilado, los sube a S3, crea una llave SSH y una contraseña aleatoria para la base de datos (que no se guarda en el repositorio), genera la plantilla con <code>cdk synth</code> y la aplica con <code>aws cloudformation deploy</code>.
   Crea la EC2, la RDS, el grupo de seguridad, la base de datos y las dos tablas de Glue, y el grupo de trabajo de Athena. Después espera a que la API responda. Tarda unos 10 minutos, casi todo por la RDS. <code>deploy.sh destroy</code> borra todo lo anterior y deja el bucket de datos.</li>
   <li><b><code>run_emr.sh</code></b> lanza el cluster de EMR, espera a que termine y muestra el resultado. Está separado del despliegue a propósito, por lo explicado en la sección 6.2.</li>
 </ul>
 <h3>7.2 Qué recursos crea</h3>
 <table>
   <tr><th>Recurso</th><th>Configuración</th></tr>
-  <tr><td>EC2</td><td><code>t3.small</code>, disco cifrado de 20 GB, instala Python y arranca la API como servicio del sistema</td></tr>
+  <tr><td>EC2</td><td><code>t3.small</code>, disco cifrado de 20 GB, instala Python y arranca la API como servicio del sistema. No necesita Node: recibe el frontend ya compilado</td></tr>
   <tr><td>RDS PostgreSQL 16</td><td><code>db.t3.micro</code>, 20 GB cifrados, una sola AZ, sin acceso público, respaldo de un día</td></tr>
   <tr><td>Grupo de seguridad</td><td>Puerto 8000 abierto (para que el profesor pueda calificar), SSH solo desde nuestra IP, y PostgreSQL únicamente entre la EC2 y la RDS</td></tr>
   <tr><td>Glue</td><td>Base <code>airline_analytics</code> y dos tablas con <i>partition projection</i>, sin crawlers</td></tr>
@@ -283,6 +299,7 @@ Con diez veces más consultas, Athena pasaría de 0,10 a unos 1 dólar, porque c
 
 <h2>9. Resultados de las pruebas automáticas (sección 6 del enunciado)</h2>
 <p>Ejecutamos el harness completo con <code>pytest</code> contra el sistema desplegado en AWS el 19 de octubre de 2026. Pasaron las 23 pruebas y obtuvimos <b>70 de 70 puntos</b>. El informe completo que genera el harness está en <code>parcial2/report.md</code>.</p>
+<p><b>Una aclaración:</b> esa ejecución se hizo con la primera versión del frontend (la de HTML y JavaScript simples). Después rehicimos el frontend en React; en local confirmamos que R8 sigue pasando y que el panel funciona, pero R8 y R9 contra AWS se volverán a comprobar cuando volvamos a desplegar.</p>
 <table>
   <tr><th>Req.</th><th>Descripción</th><th class="n">Puntos</th><th>Qué medimos</th></tr>
   <tr><td>R1</td><td>Latencia de la búsqueda</td><td class="n">4 / 4</td><td>100 peticiones con 20 clientes: mediana de 0,102 s y p95 de 0,228 s (límite: 1 s)</td></tr>
@@ -333,7 +350,7 @@ Le dimos acceso temporal a las credenciales del Lab, que caducan al terminar cad
   <tr><th>Paso</th><th>Qué le pedimos</th><th>Qué hizo y qué hicimos nosotros</th></tr>
   <tr><td>1. Entender el punto de partida</td><td>Analizar el repositorio del parcial 1 y decirnos qué opinaba</td><td>Nos resumió el sistema, sus puntos fuertes y lo que faltaba. Con eso armamos una lista de tareas de los dos parciales</td></tr>
   <tr><td>2. Leer el enunciado y el harness</td><td>Explicarnos el enunciado del parcial 2, qué es un harness y de dónde sale la semilla</td><td>Nos explicó los 12 requisitos y calculó los datos derivados de la semilla 963. Nosotros obtuvimos la semilla y se la dimos</td></tr>
-  <tr><td>3. Backend y frontend</td><td>Escribir la API del contrato y las dos páginas, probando con el harness</td><td>Escribió el código y lo probó en local (R1, R2, R3 y R8). Le preguntamos por qué no se reutilizaba el frontend de React del parcial 1 y quedamos en mantener la versión simple</td></tr>
+  <tr><td>3. Backend y frontend</td><td>Escribir la API del contrato y las dos páginas, probando con el harness</td><td>Escribió el código y lo probó en local (R1, R2, R3 y R8). Después le pedimos rehacer el frontend en React con el diseño del parcial 1 y agregar al panel el ranking de las 9 rutas; lo hizo y lo verificó con R8 y con respuestas de Athena simuladas</td></tr>
   <tr><td>4. Trabajo de EMR</td><td>Escribir el trabajo de limpieza en PySpark y comprobarlo</td><td>Escribió el programa, lo verificó contra el oráculo y detectó la inconsistencia de <code>bookings</code></td></tr>
   <tr><td>5. Infraestructura</td><td>Definir el stack de AWS, los scripts de despliegue y el lanzador de EMR</td><td>Escribió el stack CDK y los scripts. Nosotros pusimos las credenciales del Lab y ejecutamos <code>deploy.sh</code> y <code>run_emr.sh</code> desde nuestra terminal. Juntos corregimos los dos fallos descritos en la sección 10</td></tr>
   <tr><td>6. Pruebas y cierre</td><td>Correr el harness completo y revisar que no quedaran recursos encendidos</td><td>Ejecutó el harness y verificó que no hubiera recursos activos al destruir el stack. Nosotros decidimos cuándo destruir y qué subir al repositorio</td></tr>
@@ -352,6 +369,7 @@ Le dimos acceso temporal a las credenciales del Lab, que caducan al terminar cad
   <tr><td>EMR</td><td>Servicio de AWS que levanta un grupo de máquinas con Spark para procesar datos grandes</td></tr>
   <tr><td>Glue Data Catalog</td><td>Directorio de AWS donde se registra cómo son las tablas (columnas y ubicación de los archivos)</td></tr>
   <tr><td>Harness</td><td>Conjunto de pruebas automáticas con las que el profesor califica el sistema desplegado</td></tr>
+  <tr><td>React / Vite</td><td>React es una biblioteca de JavaScript para construir páginas web con componentes; Vite es la herramienta que compila ese código a archivos estáticos que cualquier servidor puede entregar</td></tr>
   <tr><td>Parquet</td><td>Formato de archivo por columnas y comprimido, pensado para análisis de datos</td></tr>
   <tr><td>Partición</td><td>Dividir los datos en carpetas (aquí, una por mes) para leer solo la que se necesita</td></tr>
   <tr><td>Partition projection</td><td>Truco de Athena para conocer las particiones por una regla (meses de 2023-01 a 2024-12) sin registrarlas una por una</td></tr>
