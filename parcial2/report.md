@@ -19,7 +19,7 @@ Automated score: **70.0 / 70.0**
 
 ## R1 Flight search latency - passed
 - passed: `test_search_p95` 
-- evidence: 100 requests, concurrency 20: p50=0.102s p95=0.228s
+- evidence: 100 requests, concurrency 20: p50=0.133s p95=0.523s
 
 ## R2 No overselling under concurrency - passed
 - passed: `test_last_seat_exactly_one` 
@@ -62,16 +62,16 @@ Automated score: **70.0 / 70.0**
 ## R7 Analytics endpoint backed by Athena - passed
 - passed: `test_endpoint_matches_oracle_and_uses_athena` 
 - passed: `test_endpoint_unknown_is_404` 
-- evidence: CUC-BGA 2023-05: ok in 2.46s
-- evidence: CUC-SMR 2024-12: ok in 2.19s
-- evidence: CUC-SMR 2024-01: ok in 1.58s
-- evidence: CUC-SMR 2024-11: ok in 1.54s
-- evidence: CTG-BOG 2023-11: ok in 2.19s
+- evidence: CUC-BGA 2023-05: ok in 1.45s
+- evidence: CUC-SMR 2024-12: ok in 1.25s
+- evidence: CUC-SMR 2024-01: ok in 1.83s
+- evidence: CUC-SMR 2024-11: ok in 1.23s
+- evidence: CTG-BOG 2023-11: ok in 1.20s
 - evidence: 7 Athena queries submitted during the probes
 
 ## R8 Customer flow in browser - passed
 - passed: `test_search_reserve_confirm` 
-- evidence: UI created reservation 43beff11d88c4621941762042d84688f for a flight; backend returns it
+- evidence: UI created reservation 71e65ac5b3ce4bbe995cebdb98b24291 for a flight; backend returns it
 
 ## R9 Manager panel matches endpoint - passed
 - passed: `test_manager_panel_equals_endpoint` 

@@ -3,7 +3,7 @@
     "team_id": "team-963",
     "seed": 963
   },
-  "generated_at": "2026-10-19 16:40:37",
+  "generated_at": "2026-10-22 07:42:46",
   "points": 70.0,
   "max_points": 70.0,
   "requirements": [
@@ -21,7 +21,7 @@
         }
       ],
       "evidence": [
-        "100 requests, concurrency 20: p50=0.102s p95=0.228s"
+        "100 requests, concurrency 20: p50=0.133s p95=0.523s"
       ],
       "warnings": []
     },
@@ -179,11 +179,11 @@
         }
       ],
       "evidence": [
-        "CUC-BGA 2023-05: ok in 2.46s",
-        "CUC-SMR 2024-12: ok in 2.19s",
-        "CUC-SMR 2024-01: ok in 1.58s",
-        "CUC-SMR 2024-11: ok in 1.54s",
-        "CTG-BOG 2023-11: ok in 2.19s",
+        "CUC-BGA 2023-05: ok in 1.45s",
+        "CUC-SMR 2024-12: ok in 1.25s",
+        "CUC-SMR 2024-01: ok in 1.83s",
+        "CUC-SMR 2024-11: ok in 1.23s",
+        "CTG-BOG 2023-11: ok in 1.20s",
         "7 Athena queries submitted during the probes"
       ],
       "warnings": []
@@ -202,7 +202,7 @@
         }
       ],
       "evidence": [
-        "UI created reservation 43beff11d88c4621941762042d84688f for a flight; backend returns it"
+        "UI created reservation 71e65ac5b3ce4bbe995cebdb98b24291 for a flight; backend returns it"
       ],
       "warnings": []
     },

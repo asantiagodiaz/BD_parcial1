@@ -216,7 +216,7 @@ Como Athena no permite parámetros en este modo, la ruta y el mes se validan con
 
 <h3>6.1 Dónde corre cada cosa</h3>
 <p><b>Elegimos</b> una sola EC2 <code>t3.small</code> para la API y el frontend, y una RDS PostgreSQL <code>db.t3.micro</code> en una sola zona de disponibilidad y sin acceso público.
-<b>Por qué:</b> es lo más barato que cumple R1 y R2. R2 necesita bloqueo de filas, que PostgreSQL ofrece; y R1 se cumple con una máquina pequeña porque la búsqueda es una consulta con índice por ruta y fecha. Medimos un p95 de 0,228 segundos, muy por debajo del segundo permitido.
+<b>Por qué:</b> es lo más barato que cumple R1 y R2. R2 necesita bloqueo de filas, que PostgreSQL ofrece; y R1 se cumple con una máquina pequeña porque la búsqueda es una consulta con índice por ruta y fecha. Medimos un p95 de 0,523 segundos, por debajo del segundo permitido.
 <b>Descartamos</b> los contenedores con balanceador de carga (el balanceador cuesta unos 16 dólares al mes y no mejora ningún requisito), Aurora y DynamoDB (más caros, o sin el bloqueo de filas que necesitamos), y poner PostgreSQL dentro de la propia EC2 (ahorraría unos 14 dólares al mes,
 pero perdemos copias de seguridad administradas y aislamiento de los datos). <i>Requisitos: R1, R2, R11. Pilares: Optimización de costos, Confiabilidad, Seguridad.</i></p>
 
@@ -231,7 +231,7 @@ Lo medimos: una corrida dura unos 8 minutos en total (cerca de 6 minutos de arra
 <i>Requisitos: R5, R6. Pilares: Optimización de costos, Eficiencia de rendimiento, Sostenibilidad.</i></p>
 
 <h3>6.4 De dónde saca el panel sus números</h3>
-<p>El endpoint consulta Athena cada vez. <b>Latencia:</b> entre 1,5 y 2,5 segundos medidos, dentro del límite de 10 s. <b>Costo por consulta:</b> fracciones de centavo, porque cada una lee kilobytes y Athena cobra 5 dólares por terabyte escaneado. <b>Frescura:</b> los números son los de la última corrida de EMR; para un análisis gerencial, que
+<p>El endpoint consulta Athena cada vez. <b>Latencia:</b> entre 1,2 y 1,8 segundos medidos, dentro del límite de 10 s. <b>Costo por consulta:</b> fracciones de centavo, porque cada una lee kilobytes y Athena cobra 5 dólares por terabyte escaneado. <b>Frescura:</b> los números son los de la última corrida de EMR; para un análisis gerencial, que
 mira meses completos, es suficiente. <b>¿Usamos caché?</b> No lo justificamos: el volumen de consultas es bajo, el contrato exige que la primera petición de cada par consulte a Athena, y un caché solo valdría la pena con miles de consultas por día.
 <i>Requisitos: R7, R9. Pilares: Eficiencia de rendimiento, Optimización de costos, Seguridad.</i></p>
 
@@ -298,18 +298,18 @@ Con diez veces más consultas, Athena pasaría de 0,10 a unos 1 dólar, porque c
 (<i>sostenibilidad</i>: consumimos energía solo mientras corre el trabajo).</p>
 
 <h2>9. Resultados de las pruebas automáticas (sección 6 del enunciado)</h2>
-<p>Ejecutamos el harness completo con <code>pytest</code> contra el sistema desplegado en AWS el 19 de octubre de 2026. Pasaron las 23 pruebas y obtuvimos <b>70 de 70 puntos</b>. El informe completo que genera el harness está en <code>parcial2/report.md</code>.</p>
+<p>Ejecutamos el harness completo con <code>pytest</code> contra el sistema desplegado en AWS el 22 de octubre de 2026, con el frontend en React. Pasaron las 23 pruebas y obtuvimos <b>70 de 70 puntos</b>. El informe completo que genera el harness está en <code>parcial2/report.md</code>.</p>
 <table>
   <tr><th>Req.</th><th>Descripción</th><th class="n">Puntos</th><th>Qué medimos</th></tr>
-  <tr><td>R1</td><td>Latencia de la búsqueda</td><td class="n">4 / 4</td><td>100 peticiones con 20 clientes: mediana de 0,102 s y p95 de 0,228 s (límite: 1 s)</td></tr>
+  <tr><td>R1</td><td>Latencia de la búsqueda</td><td class="n">4 / 4</td><td>100 peticiones con 20 clientes: mediana de 0,133 s y p95 de 0,523 s (límite: 1 s)</td></tr>
   <tr><td>R2</td><td>Sin sobreventa</td><td class="n">10 / 10</td><td>5 rondas de 50 clientes por 1 asiento: siempre 1 respuesta 201 y 49 respuestas 409. 5 rondas con K = 8: siempre exactamente 8 respuestas 201. Nunca un error 5xx</td></tr>
   <tr><td>R3</td><td>Consulta de reserva</td><td class="n">3 / 3</td><td>Devuelve la reserva creada y 404 para un id desconocido</td></tr>
   <tr><td>R4</td><td>EMR escribe Parquet</td><td class="n">8 / 8</td><td>Los 24 archivos se escribieron dentro de una corrida de EMR completada; 2.009.247 filas curadas, las esperadas; ingresos de los meses de prueba exactos</td></tr>
   <tr><td>R5</td><td>Tablas en Glue</td><td class="n">6 / 6</td><td>Columnas exactas, formato Parquet y partición <code>month</code> con <i>partition projection</i></td></tr>
   <tr><td>R6</td><td>Athena: top-10 y poda</td><td class="n">8 / 8</td><td>El top-10 de rutas coincide con el esperado; la consulta de un mes escaneó 295.129 bytes (límite: 1.601.434)</td></tr>
-  <tr><td>R7</td><td>Endpoint desde Athena</td><td class="n">8 / 8</td><td>5 pares (ruta, mes) correctos en 1,5 a 2,5 s cada uno; 7 consultas a Athena registradas; 404 para datos inexistentes</td></tr>
-  <tr><td>R8</td><td>Flujo en el navegador</td><td class="n">6 / 6</td><td>Un navegador real busca, reserva y ve el código; el backend devuelve esa reserva</td></tr>
-  <tr><td>R9</td><td>Panel igual al endpoint</td><td class="n">4 / 4</td><td>SMR-BAQ en 2024-01: el panel muestra 0,8773, igual que el endpoint y que el valor esperado</td></tr>
+  <tr><td>R7</td><td>Endpoint desde Athena</td><td class="n">8 / 8</td><td>5 pares (ruta, mes) correctos en 1,2 a 1,8 s cada uno; 7 consultas a Athena registradas; 404 para datos inexistentes</td></tr>
+  <tr><td>R8</td><td>Flujo en el navegador</td><td class="n">6 / 6</td><td>Un navegador real busca, reserva y ve el código en la interfaz de React; el backend devuelve esa reserva</td></tr>
+  <tr><td>R9</td><td>Panel igual al endpoint</td><td class="n">4 / 4</td><td>SMR-BAQ en 2024-01: el panel muestra 0,8773, igual que el endpoint y que el valor esperado. Además comprobamos a mano que el ranking de las 9 rutas se llena con datos reales de Athena</td></tr>
   <tr><td>R10</td><td>Sin EMR encendido</td><td class="n">5 / 5</td><td>0 clusters activos; 12 horas normalizadas usadas (tope: 150)</td></tr>
   <tr><td>R11</td><td>Arquitectura simple y barata</td><td class="n">4 / 4</td><td>Solo instancias permitidas, sin Multi-AZ ni NAT; 7 servicios facturables detectados (máximo 8)</td></tr>
   <tr><td>R12</td><td>Proyección de costos</td><td class="n">4 / 4</td><td>Declarado: 31,89 USD; estimado de lo desplegado: 27,95 USD; ambos bajo 50 USD</td></tr>
@@ -372,7 +372,7 @@ Le dimos acceso temporal a las credenciales del Lab, que caducan al terminar cad
   <tr><td>Parquet</td><td>Formato de archivo por columnas y comprimido, pensado para análisis de datos</td></tr>
   <tr><td>Partición</td><td>Dividir los datos en carpetas (aquí, una por mes) para leer solo la que se necesita</td></tr>
   <tr><td>Partition projection</td><td>Truco de Athena para conocer las particiones por una regla (meses de 2023-01 a 2024-12) sin registrarlas una por una</td></tr>
-  <tr><td>p95</td><td>El valor bajo el cual está el 95 % de las mediciones; "p95 de 0,228 s" significa que el 95 % de las búsquedas tardó 0,228 s o menos</td></tr>
+  <tr><td>p95</td><td>El valor bajo el cual está el 95 % de las mediciones; "p95 de 0,523 s" significa que el 95 % de las búsquedas tardó 0,523 s o menos</td></tr>
   <tr><td>RDS</td><td>Base de datos administrada por AWS (aquí PostgreSQL)</td></tr>
   <tr><td>S3</td><td>Servicio de AWS para guardar archivos</td></tr>
   <tr><td>Sobreventa</td><td>Vender más asientos de los que tiene el avión</td></tr>
