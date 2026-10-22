@@ -9,7 +9,7 @@ import pathlib
 
 OUT = pathlib.Path(__file__).resolve().parent
 NOMBRE = "06-arquitectura-aws-parcial2"
-W, H = 1280, 720
+W, H = 1280, 1045
 
 # Paleta por tipo de recurso
 EST = {
@@ -32,7 +32,7 @@ ZONAS = [
 NODOS = [
     ("cli", "user", 15, 75, 150, 70, ["Cliente", "buscar y reservar"]),
     ("ger", "user", 15, 180, 150, 70, ["Gerente", "panel de ocupación"]),
-    ("ec2", "compute", 330, 95, 235, 110, ["EC2 t3.small", "FastAPI + frontend estático", "(un solo proceso, puerto 8000)"]),
+    ("ec2", "compute", 330, 95, 235, 110, ["EC2 t3.small", "API FastAPI + frontend React", "(compilado · un proceso · :8000)"]),
     ("rds", "db", 690, 95, 190, 110, ["RDS PostgreSQL", "db.t3.micro · 1 AZ", "privada (solo la EC2)"]),
     ("ath", "analytics", 330, 355, 200, 90, ["Athena", "workgroup airline-wg", "tope 1 GB por consulta"]),
     ("glue", "analytics", 330, 545, 200, 90, ["Glue Data Catalog", "2 tablas · partition", "projection (sin crawlers)"]),
@@ -57,6 +57,29 @@ ARISTAS = [
     ("emr", "t", "cur", "b", "escribe Parquet", 0, 0),
     ("raw", "l", "emr", "r", "lee CSV", 0, -8),
 ]
+
+LEYENDA = [
+    (1, "cli", "Cliente", ["Persona que busca un vuelo y lo reserva desde el navegador.",
+                           "Es la página principal (/) del frontend."]),
+    (2, "ger", "Gerente", ["Persona de la aerolínea que consulta la ocupación por ruta y mes en el",
+                           "panel (/manager): ve el porcentaje y el ranking de las 9 rutas."]),
+    (3, "ec2", "EC2 t3.small", ["Máquina virtual que ejecuta la API (FastAPI) y entrega el frontend React",
+                                "ya compilado. Es un solo proceso en el puerto 8000; no necesita Node."]),
+    (4, "rds", "RDS PostgreSQL", ["Base de datos de vuelos y reservas. Es privada: solo la EC2 se conecta.",
+                                  "Un UPDATE condicional impide vender un asiento de más."]),
+    (5, "ath", "Athena", ["Ejecuta SQL directamente sobre los archivos de S3, sin servidor propio.",
+                          "El panel le pregunta la ocupación; cobra solo por los datos que lee."]),
+    (6, "glue", "Glue Data Catalog", ["Guarda cómo son las 2 tablas (columnas y carpeta de S3) para que Athena",
+                                      "las entienda. Con partition projection conoce los 24 meses sin crawlers."]),
+    (7, "cur", "S3 curated/", ["Datos ya limpios en Parquet, una carpeta por mes (month=2024-01...).",
+                               "Una consulta de un mes solo lee su carpeta: por eso escanea tan poco."]),
+    (8, "emr", "EMR (Spark)", ["Cluster temporal que lee los CSV, aplica las reglas de limpieza C1–C5 y",
+                               "escribe el Parquet. Se apaga solo al terminar, para no seguir cobrando."]),
+    (9, "raw", "S3 raw/", ["El historial tal como llega: 2 millones de reservas en CSV, con rutas mal",
+                           "escritas, estados raros, filas repetidas y precios inválidos."]),
+]
+NUM = {nid: n for n, nid, _, _ in LEYENDA}
+LEY_X, LEY_Y, LEY_W, LEY_H = 15, 725, 1250, 305
 
 DIM = {n[0]: n for n in NODOS}
 
@@ -105,6 +128,21 @@ def svg() -> str:
             ali, px = ("start", x + 14) if tipo == "note" else ("middle", x + w / 2)
             o.append(f'<text x="{px}" y="{y0 + i * 18}" font-size="{tam}" font-weight="{peso}" '
                      f'text-anchor="{ali}" fill="#212529">{esc(t)}</text>')
+    for nid, n in NUM.items():
+        _, _, x, y, w, h, _ = DIM[nid]
+        o.append(f'<circle cx="{x}" cy="{y}" r="12" fill="#212529"/>')
+        o.append(f'<text x="{x}" y="{y + 4.5}" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">{n}</text>')
+    o.append(f'<rect x="{LEY_X}" y="{LEY_Y}" width="{LEY_W}" height="{LEY_H}" rx="10" fill="#f8f9fa" stroke="#868e96" stroke-width="1.5"/>')
+    o.append(f'<text x="{LEY_X + 20}" y="{LEY_Y + 28}" font-size="15" font-weight="700" fill="#212529">¿Qué es cada cosa?  '
+             f'<tspan font-weight="400" font-size="12" fill="#495057">(los números marcan cada elemento del diagrama; las flechas indican quién le pide datos a quién)</tspan></text>')
+    for i, (n, nid, tit, lin) in enumerate(LEYENDA):
+        col, fila = (0, i) if i < 5 else (1, i - 5)
+        x0, y0 = LEY_X + 20 + col * 620, LEY_Y + 62 + fila * 47
+        o.append(f'<circle cx="{x0 + 10}" cy="{y0 - 4}" r="10" fill="#212529"/>')
+        o.append(f'<text x="{x0 + 10}" y="{y0}" font-size="12" font-weight="700" text-anchor="middle" fill="#ffffff">{n}</text>')
+        o.append(f'<text x="{x0 + 28}" y="{y0}" font-size="13" font-weight="700" fill="#212529">{esc(tit)}</text>')
+        for j, t in enumerate(lin):
+            o.append(f'<text x="{x0 + 28}" y="{y0 + 15 + j * 14}" font-size="11.5" fill="#343a40">{esc(t)}</text>')
     o.append("</svg>")
     return "\n".join(o)
 
@@ -135,12 +173,25 @@ def drawio() -> str:
             f'<mxCell id="e{i}" value="{html.escape(et)}" style="endArrow=classic;html=1;strokeWidth=2;'
             f'exitX={sx};exitY={sy};entryX={tx};entryY={ty};labelBackgroundColor=#ffffff;" edge="1" parent="1" '
             f'source="{a}" target="{b}"><mxGeometry relative="1" as="geometry"/></mxCell>')
+    for nid, n in NUM.items():
+        _, _, x, y, w, h, _ = DIM[nid]
+        celdas.append(
+            f'<mxCell id="b{n}" value="{n}" style="ellipse;whiteSpace=wrap;html=1;fillColor=#212529;fontColor=#ffffff;'
+            f'strokeColor=#212529;fontStyle=1;aspect=fixed;" vertex="1" parent="1">'
+            f'<mxGeometry x="{x - 12}" y="{y - 12}" width="24" height="24" as="geometry"/></mxCell>')
+    cuerpo = "<br>".join(
+        f"<b>{n}. {html.escape(tit)}</b>: " + " ".join(html.escape(t) for t in lin) for n, _, tit, lin in LEYENDA)
+    celdas.append(
+        f'<mxCell id="leyenda" value="{html.escape("<b>¿Qué es cada cosa?</b><br>" + cuerpo)}" '
+        f'style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8f9fa;strokeColor=#868e96;align=left;verticalAlign=top;'
+        f'spacingLeft=14;spacingTop=8;fontSize=11;" vertex="1" parent="1">'
+        f'<mxGeometry x="{LEY_X}" y="{LEY_Y}" width="{LEY_W}" height="{LEY_H}" as="geometry"/></mxCell>')
     return (f'<mxfile host="app.diagrams.net"><diagram name="Arquitectura parcial 2" id="p2">'
             f'<mxGraphModel dx="1280" dy="720" grid="1" gridSize="10" page="1" pageWidth="{W}" pageHeight="{H}">'
             f'<root>{"".join(celdas)}</root></mxGraphModel></diagram></mxfile>')
 
 
-def png(svg_path: pathlib.Path, png_path: pathlib.Path) -> None:
+def png(svg_path: pathlib.Path, png_path: pathlib.Path, solo_diagrama: pathlib.Path | None = None) -> None:
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
@@ -148,11 +199,13 @@ def png(svg_path: pathlib.Path, png_path: pathlib.Path) -> None:
         pg = b.new_page(viewport={"width": W, "height": H}, device_scale_factor=2)
         pg.goto(svg_path.as_uri())
         pg.screenshot(path=str(png_path))
+        if solo_diagrama:  # recorte sin el panel de leyenda, para el documento (la leyenda va como texto)
+            pg.screenshot(path=str(solo_diagrama), clip={"x": 0, "y": 0, "width": W, "height": LEY_Y - 10})
         b.close()
 
 
 if __name__ == "__main__":
     (OUT / f"{NOMBRE}.svg").write_text(svg(), encoding="utf-8")
     (OUT / f"{NOMBRE}.drawio").write_text(drawio(), encoding="utf-8")
-    png(OUT / f"{NOMBRE}.svg", OUT / f"{NOMBRE}.png")
+    png(OUT / f"{NOMBRE}.svg", OUT / f"{NOMBRE}.png", OUT / f"{NOMBRE}-sin-leyenda.png")
     print("generados:", ", ".join(f"{NOMBRE}.{e}" for e in ("drawio", "svg", "png")))
