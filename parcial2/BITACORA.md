@@ -33,6 +33,15 @@ El Parcial 1 queda intacto. El Parcial 2 vive en `parcial2/` porque el contrato 
 
 | Pieza | Archivos | Estado |
 |---|---|---|
+| Backend FastAPI | `backend/app/` | Hecho. R1, R2 y R3 pasan en local y en AWS |
+| Frontend React | `frontend/` | Hecho. R8 y R9 pasan en AWS |
+| Job PySpark (EMR) | `emr/job.py` | Hecho. Verificado contra el oráculo y ejecutado en EMR con los 2 M de filas (R4) |
+| Endpoint de analítica | `backend/app/athena.py` | Hecho. R7 pasa en AWS |
+| Infraestructura (CDK) | `infra/` | Hecho. Desplegada y destruida con `deploy.sh` |
+| Tablas Glue / Athena | `infra/lib/airline-p2-stack.ts` | Hecho. R5 y R6 pasan en AWS |
+| Costos y documento final | `cost_projection.yaml`, `docs/` | Hecho (PDF, diagrama y proyección) |
+
+---|---|---|
 | Backend FastAPI | `backend/app/` | Hecho. **R1, R2, R3 pasan en local: 17/17 pts** |
 | Frontend | `frontend/` | Hecho. **R8 pasa en local: 6/6 pts** |
 | Job PySpark (EMR) | `emr/job.py` | Escrito. Lógica verificada contra el oráculo del harness (`emr/verificar_local.py`: TODO OK) |
@@ -67,12 +76,15 @@ El `UPDATE` condicional necesita bloqueo de filas real. SQLite no sirve para val
 ### 3.4 Sin ORM de modelos ni migraciones
 SQLAlchemy sólo como pool de conexiones y SQL explícito; el esquema se crea con `CREATE TABLE IF NOT EXISTS` al arrancar. Con dos tablas, Alembic sería una pieza más sin beneficio. El pool (20 + 40 de desborde) se dimensionó para 50 reservas simultáneas.
 
-### 3.5 Frontend: HTML + JS plano servido por el mismo backend
-Se evaluó reutilizar el React del Parcial 1 (~1000 líneas, Vite, router). Se descartó: está hecho para otra API (búsqueda con `pax`/`cabin`/`with_stops`, opciones multi-tramo, tarifas, consulta por código) y reutilizarlo exigía reescribir `api.js` y casi todas las páginas, añadir los `data-testid` y la página `/manager`. Además necesita Node y un paso de build. La versión simple:
-- no requiere Node ni build en la EC2;
-- se sirve desde el mismo proceso FastAPI (un servicio menos que operar y pagar);
-- sólo 2 páginas pequeñas y fáciles de explicar.
-Del Parcial 1 se reutilizó la idea de diseño (estilos claro/oscuro). *Requisitos: R8, R9, R11. Pilares: Optimización de costos, Excelencia operativa.* Si el equipo prefiere React, se puede portar sin cambiar el backend.
+### 3.5 Frontend: React + Vite con el diseño del Parcial 1
+Se usa **React** (Vite) con el diseño del Parcial 1 (barra azul RegionalAir, tarjetas, modo oscuro). Se hizo primero una versión mínima en HTML y JS plano que ya cumplía el contrato del harness; después se rehízo en React porque se veía demasiado básica.
+- No se copiaron las pantallas del Parcial 1 (estaban hechas para otra API: búsqueda con `pax`/`cabin`/`with_stops`, opciones multi-tramo, tarifas, consulta por código). Se reutilizó el estilo y la estructura, y se reescribieron las páginas para el contrato actual.
+- **Reservar (`/`)**: búsqueda con sugerencias de aeropuertos, lista de vuelos con asientos y precio, formulario de pasajero y pantalla de confirmación con el código.
+- **Panel gerencial (`/manager`)**: tarjeta con el porcentaje de la ruta y el mes consultados, barra de progreso, asientos vendidos y capacidad, y un **ranking de las 9 rutas** en ese mes (las otras 8 se piden a Athena en paralelo; las rutas sin datos ese mes no aparecen).
+- Se conservan los `data-testid` del harness (R8 y R9) y hay un único `occupancy-value`.
+- Se compila con `npm run build` y el backend sirve `frontend/dist` (mismo proceso y origen; `/manager` devuelve el mismo `index.html`). `deploy.sh` compila antes de empaquetar y sube solo `dist`, así que la EC2 no necesita Node.
+- **Sin autenticación en el panel**, a propósito: el harness abre `/manager` y llama a `/analytics/occupancy` sin credenciales; un login haría fallar R7 y R9.
+*Requisitos: R8, R9, R11. Pilares: Optimización de costos, Excelencia operativa.*
 
 ### 3.6 `/analytics/occupancy`: consulta Athena en cada petición, sin caché
 El contrato exige que la primera petición por (ruta, mes) consulte Athena. Se consulta siempre: son pocas llamadas, cada consulta escanea KBs (fracciones de centavo) y evitamos servir datos viejos. Los parámetros se validan con lista blanca (regex) antes de interpolarlos en el SQL, porque Athena en este modo no admite parámetros. Timeout interno de 9 s para cumplir el límite de 10 s de R7. *Requisito: R7. Pilares: Seguridad, Eficiencia de rendimiento.*
@@ -100,6 +112,8 @@ El contrato exige que la primera petición por (ruta, mes) consulte Athena. Se c
 - Chromium de Playwright instalado para R8.
 - Harness: `C:\Users\LENOVO\Desktop\Uni\Big Data\parcial2-harness-estudiantes\parcial2-harness` con `config.yaml` (semilla 963, URLs locales). No se sube al repo.
 
+El frontend se compila una vez con `cd parcial2/frontend && npm install && npm run build` (genera `dist/`, que el backend sirve). Para desarrollar el frontend, `npm run dev` (puerto 5173, reenvía la API al backend local).
+
 Arrancar el backend y correr el harness:
 ```bash
 cd parcial2/backend
@@ -108,12 +122,8 @@ DATABASE_URL="postgresql+psycopg://postgres@localhost:5433/airline2" ../.venv/Sc
 ../../BD_parcial1/parcial2/.venv/Scripts/python -m pytest tests/test_backend.py tests/test_frontend.py -k "not manager"
 ```
 
-## 6. Pendiente (en orden)
-1. Entrega parcial: diagrama de arquitectura, tabla de servicios, primera proyección de costos.
-2. CDK simplificado: S3, EC2 (+ RDS o Postgres local), Glue DB + 2 tablas con partition projection, workgroup de Athena.
-3. Script `run_emr.sh` (cluster `m4.large`, `--auto-terminate`). Probar primero que el Lab permita EMR.
-4. Generar los 2M de filas, subir a S3, correr EMR, validar R4–R7 con credenciales.
-5. `cost_projection.yaml`, documento (sección 5), registro de prompts, `report.md` final.
+## 6. Estado
+Los entregables técnicos están terminados y verificados contra AWS (secciones 7 a 9). Lo que sigue en el calendario es la defensa oral.
 
 ---
 
@@ -125,7 +135,7 @@ DATABASE_URL="postgresql+psycopg://postgres@localhost:5433/airline2" ../.venv/Sc
 - **Corrección**: `run_emr.sh` fija la memoria explícitamente (`--driver-memory 1g`, ejecutor de 3 GB y 2 núcleos, sin asignación dinámica). Con eso el job corrió en ~2 min.
 - Resultado con muestra de 200 mil filas (semilla 963): step `COMPLETED`, el cluster se apagó solo, 24 prefijos `month=` con 1 archivo Parquet cada uno (~85 KB) y 1 archivo de métricas. Comparado con el oráculo del harness: filas curadas (203.824), ingresos por mes, capacidad, vendidos, cancelaciones y ocupación coinciden exactamente.
 - Tiempos: ~4,5 min de arranque del cluster + ~2 min de job. Cada corrida de 1 nodo cuenta unas 2–3 horas normalizadas (tope R10: 150).
-- Pendiente de esta prueba: correr con los 2 M de filas y registrar tiempos reales.
+- La corrida con los 2 M de filas se hizo después (sección 8): ~8 min de reloj, 2.009.247 filas curadas.
 
 ---
 
@@ -144,3 +154,12 @@ DATABASE_URL="postgresql+psycopg://postgres@localhost:5433/airline2" ../.venv/Sc
 - Nota sobre Lambda: no la creamos nosotros. Son funciones que el propio Learner Lab mantiene en la cuenta (`RoleCreationFunction`, `MainMonitoringFunction`...). El harness las cuenta; sigue habiendo margen (7 de 8). Mencionarlo en el documento.
 - El harness avisó que no pudo inspeccionar CloudFront (el Lab no lo permite); no se cuenta y no afecta.
 - Limitación a recordar: en nuestra copia `probe_salt = 0`; el profesor usa otros pares (ruta, mes) en R7 y R9. Probamos ya 5 pares + el de R9, todos correctos, y el endpoint es genérico, así que no se espera diferencia.
+
+---
+
+## 9. Segunda ejecución con el frontend en React (2026-10-22)
+
+- Nuevo despliegue con `deploy.sh` (compila el frontend, ~10 min en total). Los datos curados seguían en S3, así que no se repitió EMR.
+- **Harness completo: 70 / 70 puntos** (23 pruebas). Cambios frente a la primera ejecución: p95 de la búsqueda 0,523 s (antes 0,228 s; sigue por debajo de 1 s), endpoint de analítica entre 1,2 y 1,8 s, R8 y R9 pasan con la interfaz de React.
+- El panel se comprobó además a mano con datos reales de Athena: SMR→BAQ en 2024-01 = 87,73 % (9.080 de 10.350 asientos) y el ranking de las 9 rutas se llena (BGA→BOG 91,23 % arriba, ADZ→CTG 67,58 % abajo).
+- `report.md` y `report.json` son los de esta segunda ejecución.
