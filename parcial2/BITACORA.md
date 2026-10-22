@@ -41,17 +41,6 @@ El Parcial 1 queda intacto. El Parcial 2 vive en `parcial2/` porque el contrato 
 | Tablas Glue / Athena | `infra/lib/airline-p2-stack.ts` | Hecho. R5 y R6 pasan en AWS |
 | Costos y documento final | `cost_projection.yaml`, `docs/` | Hecho (PDF, diagrama y proyección) |
 
----|---|---|
-| Backend FastAPI | `backend/app/` | Hecho. **R1, R2, R3 pasan en local: 17/17 pts** |
-| Frontend | `frontend/` | Hecho. **R8 pasa en local: 6/6 pts** |
-| Job PySpark (EMR) | `emr/job.py` | Escrito. Lógica verificada contra el oráculo del harness (`emr/verificar_local.py`: TODO OK) |
-| Endpoint de analítica | `backend/app/athena.py` | Escrito. **Sin probar**: requiere Athena (AWS) |
-| Infraestructura (CDK) | – | Pendiente |
-| Tablas Glue / Athena | – | Pendiente |
-| `cost_projection.yaml` y documento | – | Pendiente |
-
-Lo que sólo se puede probar con AWS (R4–R7, R9–R12) queda para cuando pases las credenciales.
-
 ---
 
 ## 3. Decisiones y por qué
