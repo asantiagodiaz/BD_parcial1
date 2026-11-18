@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Tercer parcial: eventos, vista en vivo y modelo estrella</title>
+<style>
+  @page { size: A4; margin: 22mm 20mm 20mm 20mm; }
+  body { font-family: Georgia, "Times New Roman", serif; font-size: 11pt; line-height: 1.55; color: #000; background: #fff; text-align: justify; }
+  h1 { font-size: 24pt; margin: 0 0 6px; font-weight: 700; text-align: left; }
+  h2 { font-size: 15pt; margin: 26px 0 8px; padding-bottom: 3px; border-bottom: 1px solid #000; break-after: avoid; text-align: left; }
+  h3 { font-size: 12pt; margin: 16px 0 4px; break-after: avoid; text-align: left; }
+  p { margin: 5px 0 9px; }
+  ul, ol { margin: 4px 0 10px 20px; padding: 0; }
+  li { margin: 3px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 9px 0 14px; font-size: 9.6pt; line-height: 1.35; break-inside: avoid; text-align: left; }
+  th, td { border: 1px solid #000; padding: 4px 7px; vertical-align: top; }
+  th { background: #ececec; font-weight: 700; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  td.c, th.c { text-align: center; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.4pt; }
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; line-height: 1.35; border: 1px solid #000; padding: 7px 10px; margin: 8px 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; text-align: left; }
+  figure { margin: 12px 0; text-align: center; break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #000; }
+  figcaption { font-size: 9.5pt; margin-top: 4px; }
+  .portada { padding-top: 90px; text-align: left; }
+  .sub { font-size: 13pt; margin-bottom: 40px; }
+  .meta { font-size: 11pt; border: none; margin-top: 10px; }
+  .meta td { border: none; padding: 3px 14px 3px 0; }
+  .salto { break-before: page; }
+  .indice li { margin: 1px 0; }
+  .just { font-size: 9.6pt; margin: -2px 0 10px; }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <h1>Eventos, vista en vivo y modelo estrella</h1>
+  <div class="sub">Sistema de reservas aéreas · Tercer parcial<br>Big Data e Ingeniería de Datos</div>
+  <table class="meta">
+    <tr><td><b>Integrantes</b></td><td>Jefferson Gutiérrez Tovar<br>Ángel Santiago Díaz Rueda</td></tr>
+    <tr><td><b>Semilla del equipo</b></td><td>963</td></tr>
+    <tr><td><b>Plataforma</b></td><td>AWS Academy Learner Lab (región us-east-1)</td></tr>
+    <tr><td><b>Repositorio</b></td><td>github.com/asantiagodiaz/BD_parcial1, carpeta <code>parcial3/</code></td></tr>
+    <tr><td><b>Resultado del harness</b></td><td>70 / 70 (18 de noviembre de 2026)</td></tr>
+  </table>
+</div>
+
+<div class="salto"></div>
+<h2>Contenido</h2>
+<ol class="indice">
+  <li>Introducción</li>
+  <li>Qué se nos pide y cómo lo comprobamos</li>
+  <li>Vista general del sistema</li>
+  <li>Los eventos y la API</li>
+  <li>El modelo estrella</li>
+  <li>Decisiones y justificación (sección 5 del enunciado)</li>
+  <li>Cómo desplegamos en AWS</li>
+  <li>Proyección de costos</li>
+  <li>Resultados de las pruebas automáticas (sección 6 del enunciado)</li>
+  <li>Problemas que encontramos y cómo los resolvimos</li>
+  <li>Limitaciones que aceptamos</li>
+  <li>Apéndice: uso de asistentes de IA</li>
+  <li>Glosario</li>
+</ol>
+
+<h2>1. Introducción</h2>
+<p>En el segundo parcial nuestro sistema analizaba el historial de reservas por lotes: EMR limpiaba dos millones de filas una vez al mes y Athena respondía la ocupación. En este parcial el sistema también <b>reacciona a lo que pasa en el momento</b>.
+Cada búsqueda, reserva y cancelación se publica como un evento en Amazon Kinesis, y esos eventos alimentan dos caminos con necesidades muy distintas:</p>
+<ul>
+  <li><b>Un camino rápido</b>, de segundos: un consumidor lee el stream y mantiene contadores de los últimos minutos para el panel gerencial (<code>GET /analytics/live</code>).</li>
+  <li><b>Un camino analítico</b>, de minutos: los mismos eventos se guardan en S3, se limpian (duplicados, eventos tardíos y desordenados) y se cargan por micro-lotes en un <b>modelo estrella</b> que se consulta con Athena.</li>
+</ul>
+<p>La aerolínea quiere saber, minuto a minuto, cuánta gente busca y reserva, y además analizar la historia por fecha, ruta y clase tarifaria. Este documento explica cómo construimos ambos caminos, por qué elegimos cada pieza y cuánto cuesta. El sistema pasó las 29 pruebas automáticas del harness: <b>70 de 70 puntos</b>.</p>
+
+<h2>2. Qué se nos pide y cómo lo comprobamos</h2>
+<p>El enunciado define 12 requisitos verificables. El harness los comprueba contra el sistema desplegado: llama a la API, lee el stream, inyecta en nuestro stream unos 20.000 eventos "sucios" y consulta las tablas en Athena.</p>
+<table>
+  <tr><th>Req.</th><th>Qué exige</th><th class="n">Pts</th></tr>
+  <tr><td>R1</td><td>Cada búsqueda, reserva y cancelación publica exactamente un evento válido, con la clave de partición correcta y sin datos personales</td><td class="n">7</td></tr>
+  <tr><td>R2</td><td>Bajo una ráfaga de 200 búsquedas (50 a la vez) no se pierde ningún evento y la API no se frena (p95 ≤ 1 s)</td><td class="n">6</td></tr>
+  <tr><td>R3</td><td><code>GET /analytics/live</code> refleja eventos nuevos en menos de 10 s y cuenta por la hora del evento</td><td class="n">7</td></tr>
+  <tr><td>R4</td><td>Todo evento llega a la landing zone en S3 en menos de 5 minutos</td><td class="n">4</td></tr>
+  <tr><td>R5</td><td>Las tablas de la estrella existen en Glue con columnas y tipos del contrato, en Parquet; <code>dim_date</code> enriquecida; <code>fact_search</code> particionada por mes</td><td class="n">7</td></tr>
+  <tr><td>R6</td><td>Integridad: claves únicas, sin hechos huérfanos, una fila por evento</td><td class="n">5</td></tr>
+  <tr><td>R7</td><td>Las preguntas de negocio Q1–Q4 y Q6–Q8 dan los números correctos</td><td class="n">11</td></tr>
+  <tr><td>R8</td><td>Duplicados eliminados, eventos tardíos en su fecha y refresco en menos de 15 minutos</td><td class="n">6</td></tr>
+  <tr><td>R9</td><td><code>dim_route</code> es de tipo 2 y los hechos usan la versión vigente en la fecha del evento (Q5)</td><td class="n">8</td></tr>
+  <tr><td>R10</td><td>Filtrar un mes no escanea todo (≤ 60 %) y el workgroup limita cada consulta a 1 GB</td><td class="n">4</td></tr>
+  <tr><td>R11</td><td>Stream mínimo: provisionado, un shard, retención ≤ 24 h, sin <i>enhanced fan-out</i></td><td class="n">3</td></tr>
+  <tr><td>R12</td><td>Proyección de costos bajo 1,5 veces la del profesor y bajo 50 dólares</td><td class="n">2</td></tr>
+</table>
+<p>Antes de desplegar comprobamos todo lo posible en nuestro computador. Corrimos los tests R1–R3 del harness contra la API local, con Kinesis simulado (moto). Verificamos el SQL de la estrella en DuckDB, traducido automáticamente desde el dialecto de Athena, contra el "oráculo" del harness (la función que calcula las respuestas esperadas). Así, la primera corrida completa en AWS ya dio 70 de 70.</p>
+
+<div class="salto"></div>
+<h2>3. Vista general del sistema</h2>
+<figure>
+  <img src="diagrams/07-arquitectura-aws-parcial3-sin-leyenda.png" alt="Arquitectura del parcial 3">
+  <figcaption>Figura 1. Arquitectura desplegada. Las flechas indican hacia dónde viajan los datos. Arriba, la ruta transaccional y el camino rápido; abajo, el camino analítico.</figcaption>
+</figure>
+<p>Hay una sola máquina virtual (EC2 t3.small) que ejecuta la API, el frontend, la base de datos PostgreSQL y dos tareas en segundo plano: el consumidor del stream y el job que reconstruye la estrella. Fuera de la máquina están los servicios gestionados:</p>
+<table>
+  <tr><th>Pieza</th><th>Para qué la usamos</th><th>Cuándo existe</th></tr>
+  <tr><td>EC2 t3.small + PostgreSQL 16</td><td>API transaccional (vuelos, reservas sin sobreventa), vista en vivo, lanzador del ETL</td><td>Siempre</td></tr>
+  <tr><td>Kinesis Data Stream</td><td>Bus de eventos: 1 shard provisionado, retención de 24 h</td><td>Solo mientras probamos</td></tr>
+  <tr><td>Kinesis Data Firehose</td><td>Copia el stream a S3 cada 60 s, comprimido, un evento por línea</td><td>Solo mientras probamos</td></tr>
+  <tr><td>S3</td><td><code>raw/events/</code> (landing zone), <code>ref/</code> (archivos de referencia), <code>star/</code> (Parquet), <code>athena-results/</code></td><td>Siempre</td></tr>
+  <tr><td>Athena</td><td>Reconstruye la estrella con CTAS y responde las preguntas de negocio</td><td>Siempre (sin costo fijo)</td></tr>
+  <tr><td>Glue Data Catalog</td><td>Esquema y particiones de las tablas de <code>airline_star</code></td><td>Siempre (sin costo fijo)</td></tr>
+</table>
+
+<h2>4. Los eventos y la API</h2>
+<h3>4.1 El contrato de eventos</h3>
+<p>Todo evento es un JSON con <code>event_id</code> (UUID), <code>event_type</code>, <code>event_ts</code> (UTC, el momento en que ocurrió) y <code>schema_version</code> = 1. Además lleva los campos de su tipo:</p>
+<table>
+  <tr><th>Tipo</th><th>Campos propios</th><th>Clave de partición</th><th>Cómo se publica</th></tr>
+  <tr><td><code>search_performed</code></td><td>session_id, origin, destination, travel_date, results_count</td><td><code>session_id</code></td><td>Asíncrono: cola en memoria y lotes con <code>PutRecords</code></td></tr>
+  <tr><td><code>reservation_created</code></td><td>reservation_id, flight_id, route, flight_date, fare_class, price_cents</td><td><code>flight_id</code></td><td>Síncrono, con <code>PutRecord</code> después del commit</td></tr>
+  <tr><td><code>reservation_cancelled</code></td><td>los mismos que la reserva</td><td><code>flight_id</code></td><td>Síncrono, después del commit</td></tr>
+</table>
+<p>Ningún evento lleva el nombre del pasajero. El <code>session_id</code> sale de la cabecera <code>X-Session-Id</code> (el frontend genera un identificador aleatorio por pestaña); si no viene, la API genera uno.
+Repartir las búsquedas por sesión distribuiría la carga si hubiera más shards. Agrupar las reservas por vuelo hace que la creación y la cancelación de una misma reserva lleguen en orden al mismo shard.</p>
+
+<h3>4.2 Lo nuevo en la API</h3>
+<ul>
+  <li><b><code>POST /reservations/{id}/cancel</code></b>: un <code>UPDATE</code> condicional (<code>WHERE status &lt;&gt; 'CANCELLED'</code>) marca la reserva y, en la misma transacción, libera el asiento. Si dos cancelaciones llegan a la vez, solo una gana; la otra recibe 409. Una reserva inexistente da 404.</li>
+  <li><b><code>GET /analytics/live?window=5</code></b>: responde desde memoria con lo que el consumidor leyó del stream. No consulta la base ni Athena.</li>
+  <li><b><code>POST /admin/refresh-star</code></b> y <b><code>GET /admin/refresh-status</code></b>: lanzan y siguen el job que reconstruye la estrella.</li>
+  <li>Se mantiene todo el contrato del parcial 2, incluido el <code>UPDATE</code> atómico que impide la sobreventa. Quitamos <code>/analytics/occupancy</code>, porque el contrato del parcial 3 no lo pide y sus tablas no existen en esta base.</li>
+</ul>
+
+<h3>4.3 La vista en vivo</h3>
+<p>Un hilo dentro del mismo proceso de la API lee el único shard cada segundo con <code>GetRecords</code>. Guarda en memoria los eventos de la última hora, indexados por <code>event_id</code>, y cuenta los que tienen su <code>event_ts</code> dentro de la ventana pedida.
+Tres detalles hacen que el resultado sea correcto:</p>
+<ul>
+  <li><b>Cuenta por la hora del evento</b>, no por la hora de llegada. El harness repite 17.000 búsquedas de 2025 y la vista no las suma.</li>
+  <li><b>Deduplica por <code>event_id</code></b>: un reintento del productor no se cuenta dos veces.</li>
+  <li><b>Al arrancar lee desde hace una hora</b> (<code>AT_TIMESTAMP</code>), así un reinicio de la API no deja el panel en cero.</li>
+</ul>
+<p>Leemos cada 1 s y no más rápido porque un shard admite cinco lecturas por segundo <b>compartidas</b> entre todos los lectores: Firehose lee una vez por segundo y el harness, mientras verifica, cuatro.
+Corremos uvicorn con un solo worker porque los contadores viven en ese proceso. El panel gerencial (<code>/manager</code>) muestra estos contadores, se actualiza cada 3 s y permite lanzar el refresco de la estrella.</p>
+
+<div class="salto"></div>
+<h2>5. El modelo estrella</h2>
+<figure>
+  <img src="diagrams/08-modelo-estrella-parcial3.png" alt="Modelo estrella">
+  <figcaption>Figura 2. Modelo estrella. En negro, las columnas del contrato; en gris con "+", los atributos que agregamos.</figcaption>
+</figure>
+<h3>5.1 Granos y medidas</h3>
+<table>
+  <tr><th>Tabla de hechos</th><th>Grano</th><th>Medidas</th><th>Partición</th></tr>
+  <tr><td><code>fact_search</code></td><td>Una fila por evento de búsqueda distinto</td><td><code>searches</code> (=1), <code>results_count</code>, <code>days_to_travel</code></td><td><code>month</code> (YYYY-MM)</td></tr>
+  <tr><td><code>fact_booking_event</code></td><td>Una fila por evento de reserva distinto: una creación <b>o</b> una cancelación</td><td><code>bookings</code> (1/0), <code>cancellations</code> (0/1), <code>revenue_cents</code> (+precio / −precio)</td><td><code>month</code> (no la exige el contrato)</td></tr>
+</table>
+<p>La cancelación es una fila propia con ingreso negativo, no una modificación de la reserva original. Así el hecho nunca se actualiza, igual que la landing zone, y el ingreso neto es un simple <code>SUM(revenue_cents)</code>, con cada reverso en el día en que ocurrió.</p>
+
+<h3>5.2 Dimensiones y atributos agregados</h3>
+<table>
+  <tr><th>Dimensión</th><th>Grano</th><th>Atributos que agregamos y por qué</th></tr>
+  <tr><td><code>dim_date</code> (conformada)</td><td>Un día, de 2023-01-01 a 2027-12-31 (1.826 filas)</td><td><code>month_name</code> y <code>year_month</code> para los reportes y para cruzar con la partición; <code>day_of_month</code>; <code>is_business_day</code>, para comparar días hábiles con festivos y fines de semana</td></tr>
+  <tr><td><code>dim_route</code> (conformada, SCD 2)</td><td>Una versión de una ruta (13 filas: 9 rutas, 3 con dos versiones, y el miembro desconocido)</td><td><code>version</code>, para auditar los cambios; miembro <code>route_key = 0</code> "UNKNOWN" para rutas que no están en la referencia</td></tr>
+  <tr><td><code>dim_fare_class</code></td><td>Una clase tarifaria</td><td><code>fare_class_name</code> y <code>cabin_rank</code>, para ordenar ECONOMY antes que BUSINESS; miembro 0 "UNKNOWN"</td></tr>
+</table>
+<p>En los hechos guardamos además atributos degenerados que no son personales: <code>session_id</code>, <code>reservation_id</code>, <code>flight_id</code>, las fechas de viaje y <code>event_ts</code>. Permiten, por ejemplo, medir la anticipación de una búsqueda o rastrear un evento hasta la landing zone.
+<code>dim_date</code> y <code>dim_route</code> son <b>conformadas</b>: las comparten los dos hechos con las mismas claves. Eso es lo que permite comparar búsquedas con reservas (Q6 y Q7).</p>
+
+<h3>5.3 Matriz bus: preguntas de negocio contra el modelo</h3>
+<table>
+  <tr><th>Pregunta</th><th>Hecho(s)</th><th>Medida</th><th class="c">dim_date</th><th class="c">dim_route</th><th class="c">dim_fare_class</th></tr>
+  <tr><td>Q1 Ingreso neto por mes y clase</td><td>booking</td><td>SUM(revenue_cents)</td><td class="c">year, month</td><td></td><td class="c">fare_class</td></tr>
+  <tr><td>Q2 Reservas, cancelaciones y tasa por ruta</td><td>booking</td><td>SUM(bookings), SUM(cancellations)</td><td></td><td class="c">route</td><td></td></tr>
+  <tr><td>Q3 Reservas por día de la semana</td><td>booking</td><td>SUM(bookings)</td><td class="c">weekday_name</td><td></td><td></td></tr>
+  <tr><td>Q4 Diez rutas con más ingreso neto</td><td>booking</td><td>SUM(revenue_cents)</td><td></td><td class="c">route</td><td></td></tr>
+  <tr><td>Q5 Ingreso por mes y categoría vigente</td><td>booking</td><td>SUM(revenue_cents)</td><td class="c">year, month</td><td class="c">route_category (versión)</td><td></td></tr>
+  <tr><td>Q6 Conversión por ruta</td><td>search + booking</td><td>COUNT(searches), SUM(bookings)</td><td></td><td class="c">route (conformada)</td><td></td></tr>
+  <tr><td>Q7 Festivos frente a otros días</td><td>search + booking</td><td>COUNT(searches), SUM(bookings)</td><td class="c">is_holiday (conformada)</td><td></td><td></td></tr>
+  <tr><td>Q8 Reservas en puentes</td><td>booking</td><td>SUM(bookings)</td><td class="c">is_long_weekend</td><td></td><td></td></tr>
+</table>
+<p><b>Festivos y puentes.</b> Los festivos salen de <code>holidays_ref.csv</code> (91 festivos colombianos de 2023 a 2027). Un día pertenece a un puente si es un lunes o viernes festivo, o si es el sábado o el domingo de un fin de semana cuyo viernes anterior o lunes siguiente es festivo. En SQL lo resolvemos uniendo cada día con los festivos desplazados entre −2 y +2 días.</p>
+
+<h2>6. Decisiones y justificación (sección 5 del enunciado)</h2>
+<p>Cada decisión cita el requisito que la motiva y los pilares del Well-Architected Framework: <i>excelencia operativa</i>, <i>seguridad</i>, <i>confiabilidad</i>, <i>eficiencia de rendimiento</i>, <i>optimización de costos</i> y <i>sostenibilidad</i>.</p>
+
+<h3>6.1 Qué entra al stream y qué no</h3>
+<p>Las <b>búsquedas</b> encajan bien en Kinesis porque son muchas, cada una vale poco y solo interesan agregadas. Perder una no cambia ninguna decisión; hacer esperar al cliente sí hace daño. Por eso la API solo las encola en memoria y un hilo las envía en lotes de hasta 500 con <code>PutRecords</code>.
+Si un lote falla a medias, reintenta solo los registros que fallaron (así no duplica los que ya entraron), y si la cola se llena, descarta la búsqueda. En la ráfaga de R2 medimos un p95 de 0,335 s y llegaron 200 eventos de 200.</p>
+<p>Las <b>reservas</b> son delicadas porque son transacciones de negocio: perder una descuadra los ingresos. Las publicamos <b>después</b> del commit, con <code>PutRecord</code> síncrono y cinco reintentos, para no publicar nunca una reserva que no quedó guardada. Aun así queda un hueco: si el proceso muere entre el commit y el envío, el evento se pierde.
+<b>En producción lo cerraríamos con el patrón <i>transactional outbox</i></b>. En la misma transacción que guarda la reserva se inserta una fila en una tabla <code>outbox</code>. Un publicador aparte envía las filas pendientes a Kinesis y las marca como publicadas, y si se cae, reenvía las que no alcanzó a marcar, con el mismo <code>event_id</code>.
+Eso da una entrega "al menos una vez", y los duplicados se eliminan después por <code>event_id</code>. Una alternativa equivalente es capturar los cambios del registro de transacciones de PostgreSQL (CDC, por ejemplo con Debezium).</p>
+<p><b>No entran al stream</b> el nombre del pasajero ni otros datos personales, las consultas de una reserva (no son hechos de negocio) ni la creación de vuelos.</p>
+<p class="just"><b>Requisitos:</b> R1, R2. <b>Pilares:</b> confiabilidad (sin perder reservas), eficiencia de rendimiento (la búsqueda no espera), seguridad (sin datos personales).</p>
+
+<h3>6.2 Dos caminos</h3>
+<p><b>La vista en vivo lee el stream y no Athena</b> porque R3 pide reflejar un evento en menos de 10 s. Athena lee la landing zone, que llega con el retraso del búfer de Firehose (unos 60 s), tarda segundos por consulta y cobra un mínimo de 10 MB por consulta. Un panel que consultara cada 3 s serían 28.800 consultas al día.
+El consumidor que corre dentro de la API no tiene costo adicional y mostró los cambios en 1,7 s.</p>
+<p><b>La estrella se refresca cada pocos minutos y no por evento</b> porque Parquet sobre S3 está pensado para lecturas analíticas grandes, no para muchas escrituras pequeñas. Si la actualizáramos por evento:</p>
+<ol>
+  <li>cada evento crearía un archivo minúsculo, y con 20.000 eventos Athena tendría que listar y abrir 20.000 archivos;</li>
+  <li>cada <code>INSERT</code> en Athena factura al menos 10 MB y tarda segundos: 20.000 inserts costarían cerca de un dólar y horas de cola;</li>
+  <li>deduplicar o ubicar un evento tardío obligaría a reescribir particiones ya publicadas en cada evento;</li>
+  <li>cada partición nueva tendría que registrarse en Glue por separado.</li>
+</ol>
+<p>Con micro-lotes cada refresco escribe pocos archivos grandes y resuelve de una vez los duplicados y los eventos tardíos. Hay un temporizador cada 10 minutos (que no hace nada si no llegaron datos nuevos) y la opción de refrescar bajo demanda.</p>
+<p class="just"><b>Requisitos:</b> R3, R8. <b>Pilares:</b> eficiencia de rendimiento, optimización de costos, sostenibilidad.</p>
+
+<h3>6.3 Landing zone: de Kinesis a S3</h3>
+<p>Usamos <b>Kinesis Data Firehose</b> con el stream como fuente: búfer de 60 s o 5 MB, compresión gzip y el procesador <code>AppendDelimiterToRecord</code>, que agrega un salto de línea a cada registro. Lo preferimos a un consumidor propio porque es gestionado: reintenta, recuerda por dónde va leyendo el shard y separa los errores en <code>raw/errors/</code>.
+Un consumidor propio costaría cero, pero si la EC2 se cayera dejaría de llenarse justo la copia durable de los eventos. Con Firehose, el camino analítico no depende de la API.</p>
+<p>El delimitador es imprescindible. El harness escribe sus eventos en JSON compacto sin salto de línea, y sin él Firehose los pegaría uno tras otro (<code>}{</code>). La SerDe JSON de Athena, que lee un objeto por línea, no podría leerlos.
+<b>Latencia:</b> el harness encontró los 19.912 eventos en S3 a los 68 s (límite: 5 minutos). <b>Costo:</b> 0,029 dólares por GB ingerido, con cada registro redondeado a 5 KB, unos 0,05 dólares al mes. Firehose lee el shard como un consumidor estándar, así que no suma consumidores <i>enhanced fan-out</i> (R11).</p>
+<p class="just"><b>Requisitos:</b> R4, R11. <b>Pilares:</b> confiabilidad, excelencia operativa (sin código propio que mantener), optimización de costos.</p>
+
+<h3>6.4 Diseño del modelo estrella</h3>
+<p>Partimos de las preguntas de negocio. Cada una necesita una medida (ingreso, reservas, cancelaciones o búsquedas) y uno o varios ejes de análisis (fecha, ruta, clase). La matriz bus de la sección 5.3 muestra qué hecho y qué dimensiones usa cada pregunta.
+De ahí salen las decisiones: dos hechos con granos distintos (búsqueda y evento de reserva), porque una búsqueda no tiene precio ni clase; dimensiones de fecha y de ruta compartidas, para poder comparar los dos hechos (conversión en Q6, festivos en Q7); y una dimensión de fecha enriquecida, porque Q3, Q7 y Q8 no se pueden responder con una lista plana de fechas.
+Los granos, los atributos agregados y su motivo están en las secciones 5.1 y 5.2.</p>
+<p class="just"><b>Requisitos:</b> R5, R6, R7. <b>Pilares:</b> eficiencia de rendimiento (consultas con pocos joins y particiones por mes), excelencia operativa.</p>
+
+<h3>6.5 ETL: el mejor proceso para esta carga</h3>
+<p>Entre la landing zone y la estrella hay una transformación: deduplicar por <code>event_id</code>, asignar la fecha por <code>event_ts</code>, resolver las claves sustitutas y la versión de ruta vigente, escribir Parquet y registrar particiones. El replay del harness son 20.509 registros (unos 5 MB de JSON, menos de 1 MB en gzip). Comparamos tres alternativas:</p>
+<table>
+  <tr><th>Criterio</th><th>Athena CTAS programado (elegido)</th><th>Lambda + DuckDB</th><th>Glue job (Spark)</th></tr>
+  <tr><td>Costo por corrida</td><td>8 consultas × 10 MB mínimo = 80 MB → <b>0,0004 USD</b></td><td>~60 s × 2 GB = 120 GB-s → 0,002 USD</td><td>2 DPU × ~2 min con arranque × 0,44 → 0,03 USD</td></tr>
+  <tr><td>Costo al mes (360 corridas)</td><td><b>~0,15 USD</b></td><td>~0,72 USD</td><td>~10,60 USD</td></tr>
+  <tr><td>Arranque frente al límite de 15 min</td><td>Sin arranque; la corrida completa tardó 31 s</td><td>1–3 s en frío, pero tope duro de 15 min por invocación</td><td>~1 min de arranque</td></tr>
+  <tr><td>Crecimiento del volumen</td><td>Sin servidores; el costo crece con los datos escaneados</td><td>Tope de 10 GB de memoria y 15 min</td><td>Escala agregando DPU</td></tr>
+  <tr><td>Operación</td><td>Solo SQL; Glue registra las particiones solo; sin paquetes ni roles</td><td>Empaquetar DuckDB; registrar particiones a mano</td><td>Script Spark, configuración del job y de los DPU</td></tr>
+  <tr><td>Idempotencia</td><td>Por diseño: reconstrucción completa a un prefijo nuevo</td><td>Hay que programarla</td><td>Hay que programarla</td></tr>
+</table>
+<p><b>Elegimos Athena CTAS, lanzado por el propio backend.</b> Es la opción más barata (unas 70 veces menos que Glue), no tiene arranque y su idempotencia es estructural. Cada corrida borra la tabla del catálogo, la crea de nuevo con CTAS en <code>star/&lt;tabla&gt;/&lt;run_id&gt;/</code> y después elimina la carpeta anterior. Nunca hay un <code>INSERT</code> sobre lo ya cargado, así que repetir el mismo lote produce exactamente las mismas filas.
+Si llega un pedido de refresco mientras otro corre, el job agenda otra corrida que empieza al terminar la actual. Así nadie recibe un "terminado" de una corrida que empezó antes de que llegaran sus datos.</p>
+<p><b>Cuándo la cambiaríamos.</b> La reconstrucción completa relee toda la historia en cada corrida. Con 66.000 eventos al mes, un año ocupa unos 20 MB en gzip, lo que sigue siendo trivial. Si el volumen llegara a millones de eventos diarios, cada reconstrucción leería decenas de GB y se acercaría a los 15 minutos.
+En ese punto pasaríamos a un proceso <b>incremental</b>: procesar solo las carpetas horarias nuevas de Firehose y deduplicar contra una ventana de días, o usar tablas Iceberg con <code>MERGE</code>. Si la transformación se volviera pesada, la moveríamos a Glue o EMR Serverless.</p>
+<p class="just"><b>Requisitos:</b> R8 (15 min, idempotencia), R5 (Parquet y particiones registradas). <b>Pilares:</b> optimización de costos, excelencia operativa, eficiencia de rendimiento.</p>
+
+<h3>6.6 Dimensión de cambio lento</h3>
+<p><b>Usamos tipo 2 para la categoría de la ruta</b> porque Q5 pregunta por el ingreso con la categoría que la ruta tenía <i>el día del evento</i>. Con nuestra semilla, el 1 de febrero de 2025 cambian tres rutas: CTG-BOG pasa de TRUNK a REGIONAL, y CUC-SMR y ADZ-BAQ de REGIONAL a TRUNK.
+La dimensión guarda una fila por versión, con <code>valid_from</code> (incluido), <code>valid_to</code> (excluido; 9999-12-31 en la vigente) e <code>is_current</code>. Las versiones se arman desde el historial con la función de ventana <code>LEAD</code>.</p>
+<p><b>Una tipo 1 respondería mal</b> porque sobrescribe la categoría. Todo el ingreso de enero de 2025 de CTG-BOG aparecería como REGIONAL aunque ese mes era TRUNK, y el de CUC-SMR y ADZ-BAQ como TRUNK aunque eran REGIONAL. Además, el reporte de un mes ya cerrado cambiaría cada vez que se recategoriza una ruta.</p>
+<p><b>A un evento tardío</b> le asignamos la versión por su fecha, no por la de llegada: el join es <code>fecha_evento &gt;= valid_from AND fecha_evento &lt; valid_to</code>. Un evento del 31 de enero que llega en marzo toma la versión de enero.</p>
+<p class="just"><b>Requisito:</b> R9. <b>Pilares:</b> confiabilidad (reportes históricos estables), excelencia operativa.</p>
+
+<h3>6.7 Eventos sucios</h3>
+<ul>
+  <li><b>Duplicados (3 % del replay).</b> La landing zone solo agrega, así que conserva los reintentos. En cada hecho nos quedamos con una fila por evento (<code>ROW_NUMBER() OVER (PARTITION BY event_id) = 1</code>). El grano queda en una fila por <code>event_id</code> y el harness contó exactamente 17.000 búsquedas y 2.912 eventos de reserva. La vista en vivo también deduplica.</li>
+  <li><b>Tardíos (2 %).</b> La fecha y el mes de la partición salen de <code>event_ts</code>, nunca de la carpeta de S3 donde Firehose guardó el archivo, que corresponde a la hora de llegada. Por eso el refresco lee la landing zone completa. En la vista en vivo, un evento viejo cae fuera de la ventana.</li>
+  <li><b>Desordenados (1 %).</b> Como cada refresco reconstruye todo el lote, el orden de llegada no influye: el resultado depende solo del conjunto de eventos. La versión de ruta se elige por fecha, tampoco por orden.</li>
+  <li><b>Inválidos.</b> Descartamos los <code>event_ts</code> con formato incorrecto y la SerDe ignora el JSON mal formado. Una ruta o una clase desconocidas van al miembro 0 de su dimensión, así que ningún hecho queda huérfano.</li>
+</ul>
+<p class="just"><b>Requisitos:</b> R6, R8, R3. <b>Pilares:</b> confiabilidad, excelencia operativa.</p>
+
+<h3>6.8 Costo y ciclo de vida</h3>
+<p>Separamos lo que existe siempre de lo que existe solo mientras probamos. La EC2, el bucket, la base de Glue y el workgroup están siempre (Glue y Athena no tienen costo fijo). El stream y Firehose los crea <code>crear_stream.sh</code> y los borra <code>borrar_stream.sh</code>, porque el shard se cobra por cada hora que existe, aunque no reciba eventos.
+Poner PostgreSQL en la misma EC2, en lugar de RDS, ahorra unos 14,70 dólares al mes. A cambio perdemos los respaldos gestionados, que en producción reemplazaríamos con snapshots del disco.
+El bucket tiene reglas de ciclo de vida: los resultados de Athena y los errores de Firehose se borran a los 7 días, y los paquetes de código a los 30. La proyección de costos está en la sección 8.</p>
+<p class="just"><b>Requisitos:</b> R11, R12. <b>Pilares:</b> optimización de costos, sostenibilidad.</p>
+
+<h3>6.9 Tabla de justificación de servicios</h3>
+<table>
+  <tr><th>Servicio</th><th>Para qué</th><th>Req.</th><th>Alternativa descartada y por qué</th></tr>
+  <tr><td>Kinesis Data Streams (provisionado, 1 shard)</td><td>Bus de eventos ordenado por clave, retención 24 h, varios lectores</td><td>R1–R4, R11</td><td>Modo on-demand: más caro a este volumen. SQS: cada mensaje lo consume un solo lector, y aquí leen tres (vista en vivo, Firehose y el harness)</td></tr>
+  <tr><td>Kinesis Data Firehose</td><td>Entrega gestionada a S3 en menos de 5 minutos</td><td>R4</td><td>Consumidor propio: ataría la landing zone a la disponibilidad de la API</td></tr>
+  <tr><td>S3</td><td>Landing zone de solo escritura y estrella en Parquet</td><td>R4, R5</td><td>—</td></tr>
+  <tr><td>Athena</td><td>ETL (CTAS) y preguntas de negocio</td><td>R5–R10</td><td>Glue job o Lambda (sección 6.5)</td></tr>
+  <tr><td>Glue Data Catalog</td><td>Esquema y particiones</td><td>R5</td><td>Crawlers: innecesarios, porque el CTAS ya define el esquema</td></tr>
+  <tr><td>EC2 + PostgreSQL</td><td>API, vista en vivo y lanzador del ETL</td><td>R1–R3, R8</td><td>RDS: ~14,70 USD/mes más. Lambda + DynamoDB para la vista en vivo: más piezas que operar</td></tr>
+</table>
+
+<h2>7. Cómo desplegamos en AWS</h2>
+<p>Todo se despliega con scripts de la carpeta <code>parcial3/infra/</code>. El Lab no permite crear roles IAM, así que la EC2 usa <code>LabInstanceProfile</code> y Firehose usa <code>LabRole</code>.</p>
+<table>
+  <tr><th>Script</th><th>Qué hace</th></tr>
+  <tr><td><code>deploy.sh</code></td><td>Crea el bucket con sus reglas de ciclo de vida, compila el frontend, sube el código y despliega el stack de CDK: EC2 con PostgreSQL local, base de Glue y workgroup <code>airline-p3</code> con tope de 1 GB por consulta. No usa <code>cdk bootstrap</code>: genera la plantilla y la aplica con CloudFormation</td></tr>
+  <tr><td><code>crear_stream.sh</code></td><td>Crea el stream (provisionado, 1 shard, 24 h) y Firehose hacia <code>raw/events/</code></td></tr>
+  <tr><td><code>borrar_stream.sh</code></td><td>Borra Firehose y el stream al terminar cada sesión de pruebas</td></tr>
+  <tr><td><code>actualizar_codigo.sh</code></td><td>Sube cambios de código a la EC2 por SSH y reinicia la API. Si redesplegáramos el stack, cambiaría el script de arranque de la EC2 y la instancia se reiniciaría con otra IP</td></tr>
+</table>
+<p>Orden de ejecución: <code>deploy.sh</code>, después <code>crear_stream.sh</code>, luego actualizar la URL en el <code>config.yaml</code> del harness y correr <code>pytest</code>, y al final <code>borrar_stream.sh</code>. Las credenciales del Lab las guardamos en un archivo del proyecto excluido de git y las activamos solo en la terminal de trabajo, sin tocar la configuración global de AWS del computador.</p>
+
+<h2>8. Proyección de costos</h2>
+<p>Archivo <code>parcial3/cost_projection.yaml</code>. Supuestos: unas 2.000 búsquedas y 200 reservas o cancelaciones al día (unos 66.000 eventos al mes), la API encendida todo el mes, el stream y Firehose unas 60 horas al mes, unas diez corridas del harness, y la estrella refrescada cada 10 minutos solo si llegaron datos nuevos. Precios on-demand de us-east-1.</p>
+<table>
+  <tr><th>Servicio</th><th>Detalle</th><th class="n">USD/mes</th></tr>
+  <tr><td>EC2</td><td>1 × t3.small (API, frontend, PostgreSQL y consumidor), 730 h</td><td class="n">15,18</td></tr>
+  <tr><td>EBS</td><td>Disco gp3 de 20 GB</td><td class="n">1,60</td></tr>
+  <tr><td>Kinesis</td><td>1 shard solo mientras probamos (60 h × 0,015) más unidades de PUT</td><td class="n">0,92</td></tr>
+  <tr><td>Kinesis Data Firehose</td><td>~1,4 GB facturables (registros redondeados a 5 KB) × 0,029</td><td class="n">0,05</td></tr>
+  <tr><td>S3</td><td>~1 GB entre landing zone, estrella y resultados, más las escrituras de Firehose</td><td class="n">0,10</td></tr>
+  <tr><td>Athena</td><td>~360 refrescos × 8 consultas × 10 MB más ~3.000 consultas analíticas ≈ 60 GB × 5 USD/TB</td><td class="n">0,30</td></tr>
+  <tr><td>Glue Data Catalog</td><td>1 base y 9 tablas, dentro de la capa gratuita</td><td class="n">0,00</td></tr>
+  <tr><th colspan="2">Total (lo calcula el harness sumando las líneas)</th><th class="n">18,15</th></tr>
+</table>
+<p>El 92 % del costo es la EC2 y su disco, que son fijos. Los servicios de eventos y de análisis suman 1,37 dólares, porque solo consumen cuando hay trabajo (<i>optimización de costos</i> y <i>sostenibilidad</i>).
+Si el volumen de eventos se multiplicara por 10, el total subiría a unos 21 dólares: Firehose, S3 y Athena crecen en proporción, pero el shard aguanta hasta 1.000 registros por segundo y la EC2 no cambia.
+El mayor ahorro respecto al parcial 2 (31,89 dólares) viene de no usar RDS. El total queda muy por debajo del tope de 50 dólares; si la referencia del profesor usara RDS (unos 30 dólares), el límite de 1,5 veces quedaría en unos 45.</p>
+
+<h2>9. Resultados de las pruebas automáticas (sección 6 del enunciado)</h2>
+<p>Ejecutamos el harness completo con <code>pytest</code> contra el sistema desplegado en AWS el 18 de noviembre de 2026. Pasaron las 29 pruebas en 3 minutos y 34 segundos y obtuvimos <b>70 de 70 puntos</b>. El informe que genera el harness está en <code>parcial3/report.md</code>.</p>
+<table>
+  <tr><th>Req.</th><th>Descripción</th><th class="n">Puntos</th><th>Qué midió el harness</th></tr>
+  <tr><td>R1</td><td>Un evento por acción</td><td class="n">7 / 7</td><td>30 eventos de búsqueda para 30 llamadas; 4 de reserva para 3 reservas y 1 cancelación; claves de partición correctas y sin datos personales</td></tr>
+  <tr><td>R2</td><td>Ráfaga sin pérdida</td><td class="n">6 / 6</td><td>200 búsquedas con 50 clientes: p95 de 0,335 s (límite: 1 s); exactamente 200 eventos en el stream</td></tr>
+  <tr><td>R3</td><td>Vista en vivo</td><td class="n">7 / 7</td><td>Los aumentos (+10 búsquedas, +3 reservas, +1 cancelación) se vieron a los 1,7 s; tras inyectar 17.000 búsquedas antiguas la vista mostró 243, las generadas por los tests</td></tr>
+  <tr><td>R4</td><td>Landing zone</td><td class="n">4 / 4</td><td>19.912 de 19.912 eventos distintos en S3 a los 68 s</td></tr>
+  <tr><td>R5</td><td>Tablas del contrato</td><td class="n">7 / 7</td><td>Columnas y tipos exactos, Parquet, partición <code>month</code> registrada; las 1.826 filas de <code>dim_date</code> coinciden con el calendario esperado</td></tr>
+  <tr><td>R6</td><td>Integridad</td><td class="n">5 / 5</td><td>Claves únicas, cero hechos huérfanos, una fila por <code>event_id</code></td></tr>
+  <tr><td>R7</td><td>Preguntas de negocio</td><td class="n">11 / 11</td><td>Q1, Q2, Q3, Q4, Q6, Q7 y Q8 iguales a los valores esperados</td></tr>
+  <tr><td>R8</td><td>Eventos sucios y refresco</td><td class="n">6 / 6</td><td>Refresco terminado en 31 s; conteos por evento y por fecha exactos</td></tr>
+  <tr><td>R9</td><td>SCD tipo 2</td><td class="n">8 / 8</td><td>Versiones, fechas de vigencia y banderas correctas; ingreso por categoría y mes (Q5) exacto</td></tr>
+  <tr><td>R10</td><td>Poda y tope</td><td class="n">4 / 4</td><td>Un mes escaneó 3.804 B frente a 11.210 B de todos los meses (34 %; límite 60 %); workgroup con tope de 1 GB</td></tr>
+  <tr><td>R11</td><td>Stream mínimo</td><td class="n">3 / 3</td><td>Provisionado, 1 shard, 24 h, 0 consumidores <i>enhanced fan-out</i></td></tr>
+  <tr><td>R12</td><td>Proyección de costos</td><td class="n">2 / 2</td><td>18,15 USD declarados; incluye Kinesis, S3 y Athena</td></tr>
+</table>
+<h3>Lo que el harness no puede verificar y otras aclaraciones</h3>
+<ul>
+  <li><b>Que la vista en vivo lea realmente el stream.</b> El harness solo observa su comportamiento. En nuestro caso <code>GET /health</code> muestra cuántos registros leyó el consumidor y cuándo fue su última lectura, y el código está en <code>backend/app/live.py</code>: no hay ninguna consulta a Athena ni a la base en ese camino.</li>
+  <li><b>Los eventos de la defensa serán otros.</b> El profesor usa una sal secreta que cambia el replay. Nuestro proceso no depende de los datos concretos: el SQL se verificó contra el oráculo y la reconstrucción completa funciona igual con cualquier conjunto de eventos.</li>
+  <li><b>Permisos del Lab.</b> Todo lo que el harness necesitaba estaba permitido con nuestras credenciales; ninguna parte quedó como "no verificada".</li>
+</ul>
+
+<h2>10. Problemas que encontramos y cómo los resolvimos</h2>
+<ol>
+  <li><b>El primer despliegue falló por una dependencia inexistente.</b> CDK crea por defecto un rol IAM para la EC2, y nosotros lo quitamos para usar el del Lab. Pero la plantilla conservaba un <code>DependsOn</code> hacia ese rol, y CloudFormation la rechazó. En el parcial 2 no lo vimos porque ese campo se sobrescribía con la dependencia de la RDS. Lo eliminamos explícitamente.</li>
+  <li><b>Athena rechazó el primer refresco.</b> El workgroup tenía activada la opción que obliga a usar su carpeta de resultados, y con ella Athena no acepta un CTAS que indique su propia ubicación en S3. La desactivamos: el tope de 1 GB por consulta se sigue aplicando y R10 pasa.</li>
+  <li><b>Una diferencia entre DuckDB y Athena.</b> En Athena, la función <code>sequence()</code> sobre fechas devuelve timestamps y no fechas, y el CTAS a Parquet rechazó la columna <code>full_date</code>. En DuckDB no ocurre, por eso no lo vimos en local. Agregamos un <code>CAST</code> a <code>date</code> y volvimos a pasar la verificación local.</li>
+  <li><b>El replay del harness llega sin salto de línea.</b> Lo detectamos leyendo el código del harness antes de desplegar, y por eso configuramos Firehose desde el principio con el delimitador de línea. Lo confirmamos revisando el primer archivo que llegó a S3.</li>
+  <li><b>No teníamos PostgreSQL en el computador de desarrollo.</b> Para las pruebas locales escribimos un lanzador que reemplaza la base por SQLite solo durante la prueba. El código de la API no cambia y la concurrencia real se probó en la EC2 con PostgreSQL.</li>
+</ol>
+
+<h2>11. Limitaciones que aceptamos</h2>
+<ul>
+  <li><b>Una reserva puede perderse en el stream</b> si el proceso muere entre el commit y el envío. Lo resolveríamos con el patrón outbox (sección 6.1), que el enunciado pide describir pero no implementar.</li>
+  <li><b>La vista en vivo vive en memoria de un solo proceso.</b> Si la API se reinicia, la reconstruye leyendo la última hora del stream, pero no admite varios workers ni varias instancias. Para eso guardaríamos los contadores en un almacén compartido.</li>
+  <li><b>La reconstrucción completa no escala sin límite</b> (sección 6.5). Durante los pocos segundos entre que se borra una tabla y se vuelve a crear, una consulta a esa tabla fallaría.</li>
+  <li><b>Sin autenticación ni HTTPS</b>, igual que en el parcial 2: el harness necesita llamar a la API y a los endpoints de administración sin credenciales.</li>
+  <li><b>Una sola zona de disponibilidad y sin respaldos gestionados de la base</b>, por costo.</li>
+</ul>
+
+<h2>12. Apéndice: uso de asistentes de IA</h2>
+<p>El enunciado permite usar asistentes de IA con la condición de que podamos explicar y defender cada decisión, y pide un registro de cómo los usamos. Usamos <b>Claude Code</b>, un asistente de IA de Anthropic que trabaja desde la terminal y puede leer y escribir archivos y ejecutar comandos en nuestro computador.
+Las credenciales del Lab, que caducan al terminar cada sesión, las pusimos nosotros en un archivo del proyecto y el asistente solo las usó dentro de esa carpeta.</p>
+<table>
+  <tr><th>Paso</th><th>Qué le pedimos</th><th>Qué hizo y qué hicimos nosotros</th></tr>
+  <tr><td>1. Entender el enunciado</td><td>Explicarnos el PDF del parcial 3 y proponer un plan</td><td>Resumió los dos caminos, los 12 requisitos y los cuidados de costo, y propuso una arquitectura con fases. Nosotros elegimos la semilla (963) y decidimos poner PostgreSQL en la EC2 en lugar de RDS</td></tr>
+  <tr><td>2. Leer el harness</td><td>Revisar el harness que le entregamos</td><td>Lo extrajo fuera del repositorio, generó los archivos de referencia y encontró detalles que cambiaban el diseño: el replay sin salto de línea, el límite de lecturas del shard y que R2 exige exactamente 200 eventos</td></tr>
+  <tr><td>3. Backend y frontend</td><td>Implementar los eventos, la cancelación, la vista en vivo y el refresco</td><td>Escribió el código y lo probó en local con los tests R1–R3 del harness (Kinesis simulado). Adaptó el frontend: botón de cancelar y panel en vivo</td></tr>
+  <tr><td>4. SQL de la estrella</td><td>Construir las dimensiones y los hechos</td><td>Escribió el SQL y un script que lo traduce a DuckDB y lo compara con el oráculo del harness con el replay sucio</td></tr>
+  <tr><td>5. Infraestructura y despliegue</td><td>Adaptar el stack del parcial 2 y crear los scripts del stream</td><td>Escribió el stack y los scripts. Nosotros pusimos las credenciales y autorizamos el despliegue. Juntos corregimos los tres fallos de la sección 10 y corrimos el harness: 70/70. Al terminar le pedimos borrar el stream</td></tr>
+  <tr><td>6. Documentación</td><td>Redactar la sección 5, la proyección de costos, los diagramas y este documento</td><td>Los redactó y generó los diagramas con el mismo motor del parcial 2. Nosotros revisamos el contenido y pedimos ajustes</td></tr>
+</table>
+<p>Este apéndice es un resumen por pasos y no una transcripción. El texto exacto de cada instrucción está en el historial de la conversación con el asistente, que podemos entregar.</p>
+
+<h2>13. Glosario</h2>
+<table>
+  <tr><th>Término</th><th>Qué significa</th></tr>
+  <tr><td>Athena</td><td>Servicio de AWS que ejecuta SQL directamente sobre archivos en S3 y cobra por los datos que lee</td></tr>
+  <tr><td>CTAS</td><td><i>CREATE TABLE AS SELECT</i>: crea una tabla nueva, con sus archivos, a partir del resultado de una consulta</td></tr>
+  <tr><td>Dimensión conformada</td><td>Dimensión que comparten varias tablas de hechos con las mismas claves, para poder compararlas</td></tr>
+  <tr><td>Evento</td><td>Registro inmutable de algo que pasó (una búsqueda, una reserva), con su hora de ocurrencia</td></tr>
+  <tr><td>Firehose</td><td>Servicio de AWS que lee un stream y entrega los datos por lotes a un destino como S3</td></tr>
+  <tr><td>Grano</td><td>Lo que representa una fila de una tabla de hechos (por ejemplo, "un evento de búsqueda")</td></tr>
+  <tr><td>Idempotente</td><td>Que ejecutarlo dos veces deja el mismo resultado que ejecutarlo una vez</td></tr>
+  <tr><td>Kinesis Data Streams / shard</td><td>Servicio de AWS para flujos de eventos; un shard es una unidad de capacidad (1.000 registros por segundo de escritura) que se cobra por hora</td></tr>
+  <tr><td>Landing zone</td><td>Carpeta donde se guardan los datos tal como llegan, antes de limpiarlos</td></tr>
+  <tr><td>Matriz bus</td><td>Tabla que cruza cada proceso o pregunta de negocio con las dimensiones que usa</td></tr>
+  <tr><td>Modelo estrella</td><td>Modelo analítico con tablas de hechos (medidas) en el centro y tablas de dimensiones (ejes de análisis) alrededor</td></tr>
+  <tr><td>Outbox</td><td>Patrón que guarda el evento en la misma transacción que el dato y lo publica después, para no perderlo</td></tr>
+  <tr><td>Parquet / partición</td><td>Formato por columnas y comprimido; particionar es separar los archivos en carpetas (aquí, por mes) para leer solo las necesarias</td></tr>
+  <tr><td>p95</td><td>El valor bajo el cual queda el 95 % de las mediciones</td></tr>
+  <tr><td>SCD tipo 1 / tipo 2</td><td>Formas de manejar cambios en una dimensión: la tipo 1 sobrescribe el valor; la tipo 2 guarda una fila por versión con sus fechas de vigencia</td></tr>
+</table>
+
+</body>
+</html>

@@ -25,3 +25,13 @@ Colores usados en el ER:
 - Rojo: núcleo transaccional de la reserva.
 - Morado: pasajeros, billetes, asignación de asiento.
 - Amarillo: auditoría (`EVENTO_RESERVA`).
+
+## Parcial 3
+
+Copias de los `.drawio` de `parcial3/docs/diagrams/`. Allí están las imágenes (.png, .svg) y los scripts que los generan
+(`generar_diagrama.py` y `generar_estrella.py`); si se cambian, regenerar allí y volver a copiar.
+
+| Archivo | Contenido | Sección |
+|---|---|---|
+| `07-arquitectura-aws-parcial3.drawio` | Arquitectura AWS del P3: EC2 (API + PostgreSQL + consumidor en vivo) → Kinesis → Firehose → S3 → Athena CTAS → Glue | 5 |
+| `08-modelo-estrella-parcial3.drawio` | Modelo estrella: `dim_date`, `dim_route` (SCD2), `dim_fare_class`, `fact_search`, `fact_booking_event` | 5 |

@@ -38,3 +38,4 @@ backend/.env
 
 # LibreOffice lock files
 .~lock.*#
+parcial3/aws-config

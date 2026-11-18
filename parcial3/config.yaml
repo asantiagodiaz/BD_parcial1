@@ -1,0 +1,14 @@
+# config.yaml del harness del parcial 3 (sin credenciales: el harness usa las de AWS del entorno).
+# La IP de la EC2 cambia si el Lab o el stack se reinician: actualizar backend.base_url antes de cada corrida.
+team_id: "santiago-diaz"
+seed: 963
+backend:
+  base_url: "http://44.200.115.10:8000"
+aws:
+  region: us-east-1
+  kinesis_stream: airline-events
+  raw_events_uri: "s3://p3-airline-891376990124/raw/events/"
+  athena_workgroup: airline-p3
+  athena_database: airline_star
+  athena_output: "s3://p3-airline-891376990124/athena-results/"
+cost_projection_file: cost_projection.yaml   # al correr el harness: ruta a parcial3/cost_projection.yaml

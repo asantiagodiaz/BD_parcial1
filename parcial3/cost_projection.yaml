@@ -1,0 +1,17 @@
+# Proyeccion mensual de costos - Parcial 3 (us-east-1, precios on-demand, 730 h/mes)
+# No se escribe total: el harness lo calcula sumando line_items.
+# Detalle del calculo: docs/seccion5-borrador.md (seccion "Costo y ciclo de vida").
+assumptions: >-
+  Operacion: ~2.000 busquedas/dia y ~200 reservas+cancelaciones/dia (~66 mil eventos/mes, ~0,3 KB c/u).
+  La API (EC2 con PostgreSQL local) esta encendida todo el mes. El stream de Kinesis y Firehose
+  existen solo mientras se prueba: ~60 h/mes (crear_stream.sh / borrar_stream.sh), retencion 24 h.
+  Incluye ~10 corridas del harness (20 mil eventos cada una). La estrella se refresca cada 10 min
+  solo si llegaron datos nuevos (~360 refrescos/mes x 8 consultas, minimo facturable 10 MB c/u).
+line_items:
+  - {service: "EC2", detail: "1 x t3.small (API + frontend + PostgreSQL + consumidor Kinesis), 730 h", monthly_usd: 15.18}
+  - {service: "EBS", detail: "volumen gp3 de 20 GB de la EC2", monthly_usd: 1.60}
+  - {service: "Kinesis", detail: "1 shard provisionado solo mientras se prueba (60 h x 0,015) + PUT payload units (<1 M)", monthly_usd: 0.92}
+  - {service: "Kinesis Data Firehose", detail: "~1,4 GB facturables (registros redondeados a 5 KB: 66 mil propios + 200 mil del harness) x 0,029", monthly_usd: 0.05}
+  - {service: "S3", detail: "~1 GB (landing zone gzip + estrella Parquet + resultados Athena con expiracion) + PUTs de Firehose", monthly_usd: 0.10}
+  - {service: "Athena", detail: "~360 refrescos x 8 consultas x 10 MB minimo + ~3.000 consultas analiticas x 10 MB = ~60 GB x 5 USD/TB", monthly_usd: 0.30}
+  - {service: "Glue Data Catalog", detail: "1 base + 9 tablas (dentro de la capa gratuita de 1 M objetos)", monthly_usd: 0.0}

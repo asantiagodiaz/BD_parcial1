@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 790" width="1280" height="790" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1280" height="790" fill="#ffffff"/>
+<path d="M475,110.5 C412.5,110.5 412.5,91.5 350,91.5" fill="none" stroke="#495057" stroke-width="1.6"/>
+<circle cx="350" cy="91.5" r="4" fill="#495057"/>
+<text x="467" y="106.5" font-size="10" fill="#495057" text-anchor="end">N</text>
+<text x="358" y="85.5" font-size="10" fill="#495057" text-anchor="start">1</text>
+<path d="M805,129.5 C867.5,129.5 867.5,91.5 930,91.5" fill="none" stroke="#495057" stroke-width="1.6"/>
+<circle cx="930" cy="91.5" r="4" fill="#495057"/>
+<text x="813" y="125.5" font-size="10" fill="#495057" text-anchor="start">N</text>
+<text x="922" y="85.5" font-size="10" fill="#495057" text-anchor="end">1</text>
+<path d="M475,410.5 C412.5,410.5 412.5,91.5 350,91.5" fill="none" stroke="#495057" stroke-width="1.6"/>
+<circle cx="350" cy="91.5" r="4" fill="#495057"/>
+<text x="467" y="406.5" font-size="10" fill="#495057" text-anchor="end">N</text>
+<text x="358" y="85.5" font-size="10" fill="#495057" text-anchor="start">1</text>
+<path d="M805,429.5 C867.5,429.5 867.5,91.5 930,91.5" fill="none" stroke="#495057" stroke-width="1.6"/>
+<circle cx="930" cy="91.5" r="4" fill="#495057"/>
+<text x="813" y="425.5" font-size="10" fill="#495057" text-anchor="start">N</text>
+<text x="922" y="85.5" font-size="10" fill="#495057" text-anchor="end">1</text>
+<path d="M805,448.5 C867.5,448.5 867.5,391.5 930,391.5" fill="none" stroke="#495057" stroke-width="1.6"/>
+<circle cx="930" cy="391.5" r="4" fill="#495057"/>
+<text x="813" y="444.5" font-size="10" fill="#495057" text-anchor="start">N</text>
+<text x="922" y="385.5" font-size="10" fill="#495057" text-anchor="end">1</text>
+<rect x="20" y="30" width="330" height="345" rx="8" fill="#ffffff" stroke="#1864ab" stroke-width="2"/>
+<path d="M20,38 a8,8 0 0 1 8,-8 h314 a8,8 0 0 1 8,8 v38 h-330 z" fill="#1864ab"/>
+<text x="32" y="51" font-size="15" font-weight="700" fill="#ffffff">dim_date</text>
+<text x="32" y="68" font-size="10.5" fill="#ffffff">1 fila por día · 2023-01-01 a 2027-12-31 · conformada</text>
+<text x="32" y="96" font-size="10" font-weight="700" fill="#1864ab">PK</text>
+<text x="72" y="96" font-size="12.5" fill="#212529" font-weight="700">date_key</text>
+<text x="338" y="96" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="22" y="102" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="115" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="115" font-size="12.5" fill="#212529" font-weight="400">full_date</text>
+<text x="338" y="115" font-size="11" text-anchor="end" fill="#868e96">date</text>
+<text x="32" y="134" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="134" font-size="12.5" fill="#212529" font-weight="400">year</text>
+<text x="338" y="134" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="22" y="140" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="153" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="153" font-size="12.5" fill="#212529" font-weight="400">quarter</text>
+<text x="338" y="153" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="32" y="172" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="172" font-size="12.5" fill="#212529" font-weight="400">month</text>
+<text x="338" y="172" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="22" y="178" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="191" font-size="10" font-weight="700" fill="#1864ab">+</text>
+<text x="72" y="191" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">month_name</text>
+<text x="338" y="191" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="32" y="210" font-size="10" font-weight="700" fill="#1864ab">+</text>
+<text x="72" y="210" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">year_month</text>
+<text x="338" y="210" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="22" y="216" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="229" font-size="10" font-weight="700" fill="#1864ab">+</text>
+<text x="72" y="229" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">day_of_month</text>
+<text x="338" y="229" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="32" y="248" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="248" font-size="12.5" fill="#212529" font-weight="400">weekday</text>
+<text x="338" y="248" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="22" y="254" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="267" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="267" font-size="12.5" fill="#212529" font-weight="400">weekday_name</text>
+<text x="338" y="267" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="32" y="286" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="286" font-size="12.5" fill="#212529" font-weight="400">is_weekend</text>
+<text x="338" y="286" font-size="11" text-anchor="end" fill="#868e96">boolean</text>
+<rect x="22" y="292" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="305" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="305" font-size="12.5" fill="#212529" font-weight="400">is_holiday</text>
+<text x="338" y="305" font-size="11" text-anchor="end" fill="#868e96">boolean</text>
+<text x="32" y="324" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="324" font-size="12.5" fill="#212529" font-weight="400">holiday_name</text>
+<text x="338" y="324" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="22" y="330" width="326" height="19" fill="#f8f9fa"/>
+<text x="32" y="343" font-size="10" font-weight="700" fill="#1864ab"></text>
+<text x="72" y="343" font-size="12.5" fill="#212529" font-weight="400">is_long_weekend</text>
+<text x="338" y="343" font-size="11" text-anchor="end" fill="#868e96">boolean</text>
+<text x="32" y="362" font-size="10" font-weight="700" fill="#1864ab">+</text>
+<text x="72" y="362" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">is_business_day</text>
+<text x="338" y="362" font-size="11" text-anchor="end" fill="#868e96">boolean</text>
+<rect x="475" y="30" width="330" height="250" rx="8" fill="#ffffff" stroke="#c2255c" stroke-width="2"/>
+<path d="M475,38 a8,8 0 0 1 8,-8 h314 a8,8 0 0 1 8,8 v38 h-330 z" fill="#c2255c"/>
+<text x="487" y="51" font-size="15" font-weight="700" fill="#ffffff">fact_search</text>
+<text x="487" y="68" font-size="10.5" fill="#ffffff">grano: 1 fila por búsqueda distinta (event_id)</text>
+<text x="487" y="96" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="96" font-size="12.5" fill="#212529" font-weight="400">event_id</text>
+<text x="793" y="96" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="477" y="102" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="115" font-size="10" font-weight="700" fill="#c2255c">FK</text>
+<text x="527" y="115" font-size="12.5" fill="#212529" font-weight="700">date_key</text>
+<text x="793" y="115" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="487" y="134" font-size="10" font-weight="700" fill="#c2255c">FK</text>
+<text x="527" y="134" font-size="12.5" fill="#212529" font-weight="700">route_key</text>
+<text x="793" y="134" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="477" y="140" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="153" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="153" font-size="12.5" fill="#212529" font-weight="400">results_count</text>
+<text x="793" y="153" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="487" y="172" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="172" font-size="12.5" fill="#212529" font-weight="400">searches</text>
+<text x="793" y="172" font-size="11" text-anchor="end" fill="#868e96">int (=1)</text>
+<rect x="477" y="178" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="191" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="191" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">session_id</text>
+<text x="793" y="191" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="487" y="210" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="210" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">travel_date</text>
+<text x="793" y="210" font-size="11" text-anchor="end" fill="#868e96">date</text>
+<rect x="477" y="216" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="229" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="229" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">days_to_travel</text>
+<text x="793" y="229" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="487" y="248" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="248" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">event_ts</text>
+<text x="793" y="248" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="477" y="254" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="267" font-size="10" font-weight="700" fill="#c2255c">PART</text>
+<text x="527" y="267" font-size="12.5" fill="#212529" font-weight="400">month</text>
+<text x="793" y="267" font-size="11" text-anchor="end" fill="#868e96">string YYYY-MM</text>
+<rect x="475" y="330" width="330" height="307" rx="8" fill="#ffffff" stroke="#c2255c" stroke-width="2"/>
+<path d="M475,338 a8,8 0 0 1 8,-8 h314 a8,8 0 0 1 8,8 v38 h-330 z" fill="#c2255c"/>
+<text x="487" y="351" font-size="15" font-weight="700" fill="#ffffff">fact_booking_event</text>
+<text x="487" y="368" font-size="10.5" fill="#ffffff">grano: 1 fila por reserva o cancelación distinta</text>
+<text x="487" y="396" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="396" font-size="12.5" fill="#212529" font-weight="400">event_id</text>
+<text x="793" y="396" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="477" y="402" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="415" font-size="10" font-weight="700" fill="#c2255c">FK</text>
+<text x="527" y="415" font-size="12.5" fill="#212529" font-weight="700">date_key</text>
+<text x="793" y="415" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="487" y="434" font-size="10" font-weight="700" fill="#c2255c">FK</text>
+<text x="527" y="434" font-size="12.5" fill="#212529" font-weight="700">route_key</text>
+<text x="793" y="434" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="477" y="440" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="453" font-size="10" font-weight="700" fill="#c2255c">FK</text>
+<text x="527" y="453" font-size="12.5" fill="#212529" font-weight="700">fare_class_key</text>
+<text x="793" y="453" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<text x="487" y="472" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="472" font-size="12.5" fill="#212529" font-weight="400">reservation_id</text>
+<text x="793" y="472" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="477" y="478" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="491" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="491" font-size="12.5" fill="#212529" font-weight="400">event_type</text>
+<text x="793" y="491" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="487" y="510" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="510" font-size="12.5" fill="#212529" font-weight="400">bookings</text>
+<text x="793" y="510" font-size="11" text-anchor="end" fill="#868e96">int (1/0)</text>
+<rect x="477" y="516" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="529" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="529" font-size="12.5" fill="#212529" font-weight="400">cancellations</text>
+<text x="793" y="529" font-size="11" text-anchor="end" fill="#868e96">int (0/1)</text>
+<text x="487" y="548" font-size="10" font-weight="700" fill="#c2255c"></text>
+<text x="527" y="548" font-size="12.5" fill="#212529" font-weight="400">revenue_cents</text>
+<text x="793" y="548" font-size="11" text-anchor="end" fill="#868e96">bigint (±precio)</text>
+<rect x="477" y="554" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="567" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="567" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">flight_id</text>
+<text x="793" y="567" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="487" y="586" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="586" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">flight_date</text>
+<text x="793" y="586" font-size="11" text-anchor="end" fill="#868e96">date</text>
+<rect x="477" y="592" width="326" height="19" fill="#f8f9fa"/>
+<text x="487" y="605" font-size="10" font-weight="700" fill="#c2255c">+</text>
+<text x="527" y="605" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">event_ts</text>
+<text x="793" y="605" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="487" y="624" font-size="10" font-weight="700" fill="#c2255c">PART</text>
+<text x="527" y="624" font-size="12.5" fill="#212529" font-weight="400">month</text>
+<text x="793" y="624" font-size="11" text-anchor="end" fill="#868e96">string YYYY-MM</text>
+<rect x="930" y="30" width="330" height="250" rx="8" fill="#ffffff" stroke="#2b8a3e" stroke-width="2"/>
+<path d="M930,38 a8,8 0 0 1 8,-8 h314 a8,8 0 0 1 8,8 v38 h-330 z" fill="#2b8a3e"/>
+<text x="942" y="51" font-size="15" font-weight="700" fill="#ffffff">dim_route</text>
+<text x="942" y="68" font-size="10.5" fill="#ffffff">SCD tipo 2 · 1 fila por versión · conformada</text>
+<text x="942" y="96" font-size="10" font-weight="700" fill="#2b8a3e">PK</text>
+<text x="982" y="96" font-size="12.5" fill="#212529" font-weight="700">route_key</text>
+<text x="1248" y="96" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="932" y="102" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="115" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="115" font-size="12.5" fill="#212529" font-weight="400">route</text>
+<text x="1248" y="115" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="942" y="134" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="134" font-size="12.5" fill="#212529" font-weight="400">origin</text>
+<text x="1248" y="134" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="932" y="140" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="153" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="153" font-size="12.5" fill="#212529" font-weight="400">destination</text>
+<text x="1248" y="153" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="942" y="172" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="172" font-size="12.5" fill="#212529" font-weight="400">region</text>
+<text x="1248" y="172" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="932" y="178" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="191" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="191" font-size="12.5" fill="#212529" font-weight="400">route_category</text>
+<text x="1248" y="191" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="942" y="210" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="210" font-size="12.5" fill="#212529" font-weight="400">valid_from</text>
+<text x="1248" y="210" font-size="11" text-anchor="end" fill="#868e96">date (incl.)</text>
+<rect x="932" y="216" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="229" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="229" font-size="12.5" fill="#212529" font-weight="400">valid_to</text>
+<text x="1248" y="229" font-size="11" text-anchor="end" fill="#868e96">date (excl.)</text>
+<text x="942" y="248" font-size="10" font-weight="700" fill="#2b8a3e"></text>
+<text x="982" y="248" font-size="12.5" fill="#212529" font-weight="400">is_current</text>
+<text x="1248" y="248" font-size="11" text-anchor="end" fill="#868e96">boolean</text>
+<rect x="932" y="254" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="267" font-size="10" font-weight="700" fill="#2b8a3e">+</text>
+<text x="982" y="267" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">version</text>
+<text x="1248" y="267" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="930" y="330" width="330" height="136" rx="8" fill="#ffffff" stroke="#e67700" stroke-width="2"/>
+<path d="M930,338 a8,8 0 0 1 8,-8 h314 a8,8 0 0 1 8,8 v38 h-330 z" fill="#e67700"/>
+<text x="942" y="351" font-size="15" font-weight="700" fill="#ffffff">dim_fare_class</text>
+<text x="942" y="368" font-size="10.5" fill="#ffffff">1 fila por clase tarifaria</text>
+<text x="942" y="396" font-size="10" font-weight="700" fill="#e67700">PK</text>
+<text x="982" y="396" font-size="12.5" fill="#212529" font-weight="700">fare_class_key</text>
+<text x="1248" y="396" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="932" y="402" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="415" font-size="10" font-weight="700" fill="#e67700"></text>
+<text x="982" y="415" font-size="12.5" fill="#212529" font-weight="400">fare_class</text>
+<text x="1248" y="415" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<text x="942" y="434" font-size="10" font-weight="700" fill="#e67700">+</text>
+<text x="982" y="434" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">fare_class_name</text>
+<text x="1248" y="434" font-size="11" text-anchor="end" fill="#868e96">string</text>
+<rect x="932" y="440" width="326" height="19" fill="#f8f9fa"/>
+<text x="942" y="453" font-size="10" font-weight="700" fill="#e67700">+</text>
+<text x="982" y="453" font-size="12.5" fill="#868e96" font-weight="400" font-style="italic">cabin_rank</text>
+<text x="1248" y="453" font-size="11" text-anchor="end" fill="#868e96">int</text>
+<rect x="20" y="690" width="1240" height="86" rx="8" fill="#f8f9fa" stroke="#ced4da"/>
+<text x="34" y="712" font-size="11.5" fill="#343a40">PK = clave de la dimensión · FK = clave foránea · PART = columna de partición (las tablas de hechos se particionan por mes) · + en gris = atributo agregado por el equipo (no lo exige el contrato).</text>
+<text x="34" y="730" font-size="11.5" fill="#343a40">Medidas: fact_search.searches; fact_booking_event.bookings, cancellations y revenue_cents (la cancelación es una fila propia con ingreso negativo).</text>
+<text x="34" y="748" font-size="11.5" fill="#343a40">dim_date y dim_route son conformadas: las comparten los dos hechos (Q6 y Q7). route_key apunta a la versión vigente en la fecha del evento (valid_from ≤ fecha &lt; valid_to).</text>
+<text x="34" y="766" font-size="11.5" fill="#343a40">Miembros 'UNKNOWN' con clave 0 en dim_route y dim_fare_class: un evento con ruta o clase desconocida nunca queda huérfano (R6).</text>
+</svg>

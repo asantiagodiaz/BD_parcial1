@@ -90,3 +90,43 @@ Enunciado: `docs/enunciado-parcial2.docx` · Harness: `../parcial2-harness-estud
 - [ ] Repo limpio: sin credenciales y con `config.yaml` sin secretos
 - [ ] Terminar siempre EMR y destruir el stack al acabar cada sesión
 - [ ] Preparar la defensa oral (cada integrante debe poder explicar y modificar cualquier parte)
+
+---
+
+## Parcial 3 — Eventos, vista en vivo y modelo estrella (Kinesis, Firehose, Athena)
+
+Enunciado: `parcial3/docs/parcial32026-2-EN.pdf` · Harness: `../parcial3-harness-estudiantes` · Plan: `parcial3/PLAN.md` · Bitácora: `parcial3/BITACORA.md`
+
+### Datos de partida
+- [x] Semilla **963**; `ref/` generado con `airline_data.generate_p3` y versionado en `parcial3/ref/`
+- [x] PostgreSQL en la misma EC2 (sin RDS) para bajar el costo
+- [x] Credenciales del Lab solo para el proyecto (`source parcial3/aws-env.sh`, nunca en `~/.aws`)
+
+### Entrega parcial (antes de construir)
+- [x] Borrador de la sección 5 (`parcial3/docs/seccion5-borrador.md`): eventos, dos caminos, landing zone, estrella, ETL, SCD, eventos sucios, costos
+- [x] Diagrama del modelo estrella con granos y matriz bus (`parcial3/docs/diagrams/08-modelo-estrella-parcial3.png`)
+- [x] Diagrama de arquitectura (`parcial3/docs/diagrams/07-arquitectura-aws-parcial3.*`)
+- [x] Primera proyección de costos (`parcial3/cost_projection.yaml`, US$ 18,15/mes)
+
+### Requisitos del harness (70 pts) — 70/70 en AWS el 2026-11-18
+- [x] **R1** (7) Un evento válido por búsqueda, reserva y cancelación; clave de partición; sin datos personales
+- [x] **R2** (6) Ráfaga de 200 búsquedas: p95 0,335 s y 200/200 eventos
+- [x] **R3** (7) `/analytics/live` refleja eventos en 1,7 s y cuenta por `event_ts`
+- [x] **R4** (4) 19.912/19.912 eventos en la landing zone a los 68 s
+- [x] **R5** (7) Tablas en Glue con tipos del contrato, Parquet, `dim_date` enriquecida, `fact_search` particionada
+- [x] **R6** (5) Claves únicas, sin huérfanos, una fila por `event_id`
+- [x] **R7** (11) Q1, Q2, Q3, Q4, Q6, Q7, Q8 exactas
+- [x] **R8** (6) Dedup, tardíos por fecha de evento, refresco en 31 s
+- [x] **R9** (8) `dim_route` SCD tipo 2 y Q5 con la versión vigente
+- [x] **R10** (4) Un mes escanea 34 % de todo; workgroup con tope de 1 GB
+- [x] **R11** (3) Stream provisionado, 1 shard, 24 h, sin EFO
+- [x] **R12** (2) Proyección de US$ 18,15 con Kinesis, S3 y Athena
+
+### Entrega final
+- [x] Repositorio: backend, consumidor, job de carga, scripts para crear y borrar el stream, `config.yaml` sin credenciales, `cost_projection.yaml`, `report.md`
+- [x] Documento final con secciones 5 y 6 (`parcial3/docs/documento-final.html` → `PARCIAL3-ENTREGA.pdf`)
+- [x] Apéndice con el registro de prompts (sección 12 del documento)
+- [x] Borrar el stream y Firehose al terminar cada sesión (`./borrar_stream.sh`)
+- [ ] Destruir el stack (`./deploy.sh destroy`) cuando ya no se necesite la EC2
+- [x] Guía de defensa oral por bloques (`parcial3/docs/DEFENSA.md`)
+- [ ] Practicar la defensa en equipo (cada integrante debe poder explicar y modificar cualquier parte)
