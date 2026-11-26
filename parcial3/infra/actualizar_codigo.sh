@@ -9,6 +9,16 @@ cd "$(dirname "$0")"
 REPO_ROOT="$(cd ../.. && pwd)"
 # IP actual de la EC2 (la salida ApiUrl del stack queda vieja si el Lab reinicia la instancia)
 IP="$(aws ec2 describe-instances --filters Name=tag:aws:cloudformation:stack-name,Values=AirlineP3 Name=instance-state-name,Values=running --query "Reservations[0].Instances[0].PublicIpAddress" --output text)"
+# SSH solo se abre a una IP: si la del equipo cambio (otra red, p. ej. en la universidad), se autoriza
+# la IP actual en el security group de la EC2 antes de conectar.
+MI_IP="$(curl -s --max-time 5 https://checkip.amazonaws.com | tr -d '[:space:]')"
+SG="$(aws ec2 describe-instances --filters Name=tag:aws:cloudformation:stack-name,Values=AirlineP3 \
+  Name=instance-state-name,Values=running --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" --output text)"
+if [ -n "$MI_IP" ] && ! aws ec2 describe-security-groups --group-ids "$SG" \
+     --query "SecurityGroups[0].IpPermissions[?FromPort==\`22\`].IpRanges[].CidrIp" --output text | grep -qw "$MI_IP/32"; then
+  echo ">> autorizando SSH desde $MI_IP en $SG"
+  aws ec2 authorize-security-group-ingress --group-id "$SG" --protocol tcp --port 22 --cidr "$MI_IP/32" >/dev/null
+fi
 KEY="${KEY_NAME:-airline-p3-key}.pem"
 SSH=(ssh -i "$KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 "ec2-user@$IP")
 
