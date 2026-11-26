@@ -96,6 +96,7 @@ Harness completo contra el Learner Lab: **70 / 70**, 29 pruebas en 3 min 34 s (`
 2. **CTAS con `external_location` rechazado.** El workgroup tenía `EnforceWorkGroupConfiguration = true`. Se puso en `false`: el tope de 1 GB por consulta (R10) se aplica igual.
 3. **`timestamp(0)` en `full_date`.** En Athena, `sequence()` sobre fechas devuelve timestamps (en DuckDB no). Arreglo: `CAST(d AS date)`. La verificación local sigue en OK.
 4. Firehose aceptó `AppendDelimiterToRecord` con `LabRole`, y cada objeto en S3 trae un evento por línea en gzip. El plan B no hizo falta.
+5. **El consumidor en vivo quedó trabado al recrear el stream** (sesión siguiente, con la API sin reiniciar): `InvalidArgumentException ... did not come from this stream`. El shard nuevo se llama igual (`shardId-000000000000`) y el consumidor intentaba seguir desde el último número de secuencia del stream borrado. Arreglo (`live.py`, `_iterators`): si Kinesis rechaza la posición guardada, se descarta y se vuelve a leer desde hace 1 h. Hay una prueba unitaria para este caso. El harness no lo detecta porque nunca borra el stream a mitad de una corrida.
 
 Para subir cambios de código sin recrear la EC2 (redesplegar cambiaría el UserData y reiniciaría la instancia con otra IP) se usa `infra/actualizar_codigo.sh` (por SSH).
 

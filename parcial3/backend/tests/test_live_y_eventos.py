@@ -69,3 +69,36 @@ def test_contrato_de_eventos():
     assert events.partition_key(s) == "sess-1"
     assert events.partition_key(b) == "F1"
     assert isinstance(s["results_count"], int) and isinstance(b["price_cents"], int)
+
+
+def test_consumidor_se_recupera_si_el_stream_se_recrea():
+    """Tras borrar y crear el stream, la posicion guardada es invalida: debe leer desde hace 1 h."""
+    import boto3
+    from moto import mock_aws
+
+    from app import live
+
+    with mock_aws():
+        k = boto3.client("kinesis", region_name="us-east-1")
+        k.create_stream(StreamName="s-recreado", ShardCount=1)
+        c = live.StreamConsumer(live.LiveCounter(60))
+        c.stream = "s-recreado"
+        sid = k.list_shards(StreamName="s-recreado")["Shards"][0]["ShardId"]
+        positions = {sid: "49680341969505631912957003602989225834573903007819235330"}
+
+        class Falso:  # moto no valida el origen del numero de secuencia: se simula el rechazo de AWS
+            exceptions = k.exceptions
+
+            def list_shards(self, **kw):
+                return k.list_shards(**kw)
+
+            def get_shard_iterator(self, **kw):
+                if kw["ShardIteratorType"] == "AFTER_SEQUENCE_NUMBER":
+                    raise k.exceptions.InvalidArgumentException(
+                        {"Error": {"Code": "InvalidArgumentException", "Message": "did not come from this stream"}},
+                        "GetShardIterator")
+                assert kw["ShardIteratorType"] == "AT_TIMESTAMP"
+                return k.get_shard_iterator(**kw)
+
+        its = c._iterators(Falso(), positions)
+        assert sid in its and sid not in positions

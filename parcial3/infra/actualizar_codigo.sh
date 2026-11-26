@@ -7,8 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REPO_ROOT="$(cd ../.. && pwd)"
-IP="$(aws cloudformation describe-stacks --stack-name AirlineP3 \
-  --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text | sed -E 's#http://([^:]+):.*#\1#')"
+# IP actual de la EC2 (la salida ApiUrl del stack queda vieja si el Lab reinicia la instancia)
+IP="$(aws ec2 describe-instances --filters Name=tag:aws:cloudformation:stack-name,Values=AirlineP3 Name=instance-state-name,Values=running --query "Reservations[0].Instances[0].PublicIpAddress" --output text)"
 KEY="${KEY_NAME:-airline-p3-key}.pem"
 SSH=(ssh -i "$KEY" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 "ec2-user@$IP")
 

@@ -23,18 +23,18 @@ Automated score: **70.0 / 70.0**
 
 ## R2 No event loss under burst, API stays fast - passed
 - passed: `test_burst_no_loss_and_fast_api` 
-- evidence: 200 searches, concurrency 50: p95=0.335s, status codes [200]
+- evidence: 200 searches, concurrency 50: p95=0.257s, status codes [200]
 - evidence: 200 events in the stream for 200 requests
 
 ## R3 Live view fed by the stream (event time) - passed
 - passed: `test_live_reflects_new_events` 
 - passed: `test_live_uses_event_time` 
-- evidence: live deltas after 1.7s: searches 10/10, reservations 3/3, cancellations 1/1
-- evidence: live searches after replaying 17000 old events: 243
+- evidence: live deltas after 1.2s: searches 10/10, reservations 3/3, cancellations 1/1
+- evidence: live searches after replaying 17000 old events: 241
 
 ## R4 Events reach the S3 landing zone - passed
 - passed: `test_events_reach_landing_zone` 
-- evidence: 19912/19912 distinct replay events found in S3 after 68s
+- evidence: 19912/19912 distinct replay events found in S3 after 49s
 
 ## R5 Star schema tables per contract - passed
 - passed: `test_tables_have_required_columns` 
@@ -70,7 +70,7 @@ Automated score: **70.0 / 70.0**
 ## R10 Partition pruning and scan limit - passed
 - passed: `test_one_month_query_scans_less` 
 - passed: `test_workgroup_has_scan_limit` 
-- evidence: one month scanned 3804 B vs 11210 B for all (0.34)
+- evidence: one month scanned 3805 B vs 11261 B for all (0.34)
 
 ## R11 Minimal Kinesis stream - passed
 - passed: `test_stream_is_minimal` 

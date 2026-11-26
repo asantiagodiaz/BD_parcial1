@@ -112,13 +112,21 @@ class StreamConsumer:
         """Un iterador por shard abierto: continua tras el ultimo leido o empieza hace 1 h."""
         its = {}
         start = dt.datetime.now(UTC) - dt.timedelta(minutes=settings.live_max_window_minutes)
+        desde_hora = {"ShardIteratorType": "AT_TIMESTAMP", "Timestamp": start}
         for sh in k.list_shards(StreamName=self.stream)["Shards"]:
             sid = sh["ShardId"]
             if sid in positions:
-                kw = {"ShardIteratorType": "AFTER_SEQUENCE_NUMBER", "StartingSequenceNumber": positions[sid]}
-            else:
-                kw = {"ShardIteratorType": "AT_TIMESTAMP", "Timestamp": start}
-            its[sid] = k.get_shard_iterator(StreamName=self.stream, ShardId=sid, **kw)["ShardIterator"]
+                try:
+                    its[sid] = k.get_shard_iterator(
+                        StreamName=self.stream, ShardId=sid, ShardIteratorType="AFTER_SEQUENCE_NUMBER",
+                        StartingSequenceNumber=positions[sid])["ShardIterator"]
+                    continue
+                except k.exceptions.InvalidArgumentException:
+                    # La posicion es de un stream anterior con el mismo nombre (se borro y se creo
+                    # de nuevo: el shard se llama igual, pero sus numeros de secuencia no sirven).
+                    log.warning("consumidor: posicion invalida en %s, se lee desde hace 1 h", sid)
+                    positions.pop(sid, None)
+            its[sid] = k.get_shard_iterator(StreamName=self.stream, ShardId=sid, **desde_hora)["ShardIterator"]
         return its
 
     def _run(self) -> None:

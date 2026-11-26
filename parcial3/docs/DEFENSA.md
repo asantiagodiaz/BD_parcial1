@@ -204,3 +204,56 @@ parcial3/infra/borrar_stream.sh                   # al terminar
 ```
 
 Si el Lab se reinició: la IP de la EC2 cambia (ver la salida `ApiUrl` del stack) y hay que actualizar `backend.base_url` en el `config.yaml` del harness. PostgreSQL conserva los datos en el disco, y la estrella y la landing zone siguen en S3.
+
+---
+
+## 7. Guion de la demo (qué mostrar, en qué orden y dónde)
+
+Unos 12 minutos. Antes de entrar:
+- `source parcial3/aws-env.sh` y `parcial3/infra/crear_stream.sh`, unos 5 minutos antes.
+- Comprobar `curl -s $API/health`: el consumidor no debe mostrar `last_error`.
+- Dejar abiertos tres sitios: la terminal, la consola de AWS (región **us-east-1**) y el navegador con `$API/manager`.
+- Tener en VS Code los archivos de cada bloque.
+
+### Bloque A: eventos y vista en vivo (R1–R4), ~4 min
+
+| Qué | Dónde | Qué decir |
+|---|---|---|
+| Recorrido de un evento | Terminal: `parcial3/tools/demo_evento.sh` (Enter entre pasos) | Paso 1: la API responde sin esperar a Kinesis. Paso 2: el JSON del evento (contrato A.1, sin nombre del pasajero; clave de partición = `session_id` en búsquedas y `flight_id` en reservas). Paso 3: la vista en vivo sube sin Athena. Paso 4: el mismo evento llega a S3 en ~60–75 s |
+| Panel en vivo | Navegador: `$API/` en una pestaña y `$API/manager` en otra | Buscar y reservar en la primera, y ver subir los contadores en la segunda (se actualiza cada 3 s). La ventana es por `event_ts` |
+| Código | VS Code: `events.py` (clase `Publisher`), `main.py` (reserva → `publish_sync` después del commit), `live.py` (`StreamConsumer`, `LiveCounter`) | Búsquedas en lotes asíncronos (perder una no importa); reservas síncronas tras el commit, y *outbox* en producción |
+| Stream | Consola: **Kinesis → Data streams → airline-events**. Pestaña *Configuration* (Provisioned, 1 shard, 24 h), pestaña *Monitoring* (picos de *Incoming records* y *GetRecords* de la corrida del harness), pestaña *Enhanced fan-out* vacía | Hay tres lectores del mismo shard (Firehose, nuestro consumidor y el harness): por eso el consumidor lee cada 1 s |
+| Entrega a S3 | Consola: **Amazon Data Firehose → airline-events-to-s3 → Configuration** | Origen Kinesis, búfer de 60 s, GZIP y el procesador *AppendDelimiterToRecord* (sin él Athena no podría leer, porque los JSON quedarían pegados `}{`) |
+| Landing zone | Consola: **S3 → p3-airline-…** → `raw/events/2026/11/18/HH/`. Abrir un `.gz` | Inmutable, particionada por hora de llegada. La fecha de negocio sale de `event_ts`, no de la carpeta |
+
+### Bloque B: modelo estrella (R5–R10), ~5 min
+
+| Qué | Dónde | Qué decir |
+|---|---|---|
+| Refresco | Terminal: `curl -s -XPOST $API/admin/refresh-star`, y a los ~30 s `curl -s $API/admin/refresh-status` | DROP + CTAS a un prefijo nuevo (`run_id`): es idempotente; correrlo dos veces da lo mismo. Si llega un POST durante una corrida, se agenda otra |
+| Diagrama | `docs/diagrams/08-modelo-estrella-parcial3.png` | Granos, dimensiones conformadas, miembros desconocidos con clave 0 |
+| Tablas | Consola: **Glue → Data Catalog → Databases → airline_star → fact_search**: esquema, *Partitions* (`month`) y formato Parquet | Las particiones las registra el propio CTAS (`partitioned_by`) |
+| Parquet | Consola: **S3 → star/fact_search/<run_id>/month=2025-02/** | Una carpeta por mes: por eso un filtro por mes lee solo esa carpeta |
+| Preguntas de negocio | Consola: **Athena → Query editor**, workgroup **airline-p3**, base `airline_star`. Pegar Q5 y Q6 de `docs/COMO-PROBAR.md`. O en la terminal: `source parcial3/tools/athena_q.sh` y `q "..."` | Q5: ingreso por categoría vigente el día del evento (SCD2). Q6: los dos hechos comparten `dim_route` |
+| SCD tipo 2 | Athena: `SELECT * FROM dim_route WHERE route = 'CTG-BOG'` | Dos versiones; `valid_to` excluyente; el join as-of `valid_from <= fecha < valid_to` |
+| Poda de particiones | Athena: `SELECT sum(results_count) FROM fact_search WHERE month = '2025-02'` y luego sin el `WHERE`. Comparar *Data scanned* debajo del resultado | ~3,4 KB contra ~11,2 KB (razón 0,3; límite 0,6). Usar una columna, no `count(*)`, que escanea 0 bytes |
+| Tope de 1 GB | Consola: **Athena → Workgroups → airline-p3 → Settings** (*Per query data usage control*) | Protege el presupuesto si alguien lanza una consulta sin filtro |
+| Código | VS Code: `star_sql.py`: `ROW_NUMBER() OVER (PARTITION BY event_id)` (duplicados), `LEAD(effective_date)` (SCD2), `dim_date` con festivos y puentes | |
+
+### Bloque C: costo y arquitectura (R11–R12), ~3 min
+
+| Qué | Dónde | Qué decir |
+|---|---|---|
+| Arquitectura | `docs/diagrams/07-arquitectura-aws-parcial3.png` | Recorrer el camino rápido (segundos) y el analítico (minutos) |
+| Qué existe siempre | Consola: **CloudFormation → AirlineP3 → Resources** (EC2, Glue, workgroup) | El stream y Firehose no están en el stack: se crean y borran con scripts porque cobran por hora (`infra/crear_stream.sh`, `borrar_stream.sh`) |
+| EC2 | Consola: **EC2 → Instances** (t3.small) | API + PostgreSQL en la misma máquina: ahorra ~US$14,70/mes frente a RDS |
+| Ciclo de vida | Consola: **S3 → bucket → Management → Lifecycle rules** | Resultados de Athena 7 días; código viejo 30 días |
+| Costo | `cost_projection.yaml` y la sección 8 del PDF | US$18,15/mes; la EC2 sola es el 84 %. Con 10× más eventos subiría a ~US$21. El ETL pasaría a incremental (Iceberg + `MERGE`, o Glue/EMR Serverless) con millones de eventos diarios |
+| Prueba R11 | Terminal: `aws kinesis describe-stream-summary --stream-name airline-events` | PROVISIONED, 1 shard, 24 h, 0 consumidores EFO |
+
+### Si piden un cambio en vivo
+Seguir la sección 5. Practicarlo antes al menos una vez (por ejemplo, 5.1) en una rama:
+`git switch -c ensayo` → editar → `verificar_estrella_local.py` → `actualizar_codigo.sh` → refresh → consultar en Athena → `git switch master` y volver a subir el código con `actualizar_codigo.sh`.
+
+### Al terminar
+`parcial3/infra/borrar_stream.sh`.
